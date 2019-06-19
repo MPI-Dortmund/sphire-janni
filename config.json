@@ -1,0 +1,18 @@
+{
+    "model" : {
+        "architecture":         "unet",
+        "patch_size":           1024,
+        "overlap":              15
+    },
+
+    "train": {
+        "even_dir":             "/home/twagner/Projects/denoise/data/even/",
+        "odd_dir":              "/home/twagner/Projects/denoise/data/odd/",
+        "movie_dir":            "",
+        "pretrained_weights":   "",
+        "batch_size":           4,
+        "learning_rate":        1e-3,
+        "nb_epoch":             10,
+        "saved_weights_name":   "/mnt/data/Projects/crYOLO/data/mymodel.h5"
+    }
+}
