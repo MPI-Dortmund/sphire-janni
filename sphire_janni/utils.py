@@ -91,4 +91,4 @@ def create_image_pair(image_path):
 
 def is_movie(path):
     with mrcfile.mmap(path, permissive=True) as mrc:
-        return mrc.data.shape[0] > 1
+        return mrc.data.ndim > 2 and mrc.data.shape[0] > 1
