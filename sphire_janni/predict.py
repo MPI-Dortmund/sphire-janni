@@ -45,7 +45,7 @@ def predict_dir(input_path,
                 else:
                     with mrcfile.open(path, permissive=True) as mrc:
                         img = mrc.data
-                    img = (img - np.mean(img)) / np.std(img)
+                    img = utils.normalize(img)
                     img = img.squeeze()
                     denoised = predict_np(model,
                                                image=img,
