@@ -24,8 +24,6 @@ def predict_dir(input_path,
                 path = os.path.join(dirpath, filename)
                 if utils.is_movie(path):
                         even, odd = utils.create_image_pair(path)
-                        even = utils.normalize(even)
-                        odd = utils.normalize(odd)
                         denoised_even = predict_np(model,
                                    even,
                                    patch_size=patch_size,
@@ -37,15 +35,9 @@ def predict_dir(input_path,
                                                    padding=padding,
                                                    batch_size=batch_size)
                         denoised = (denoised_even+denoised_odd)/2
-
-
-
-
-
                 else:
                     with mrcfile.open(path, permissive=True) as mrc:
                         img = mrc.data
-                    img = utils.normalize(img)
                     img = img.squeeze()
                     denoised = predict_np(model,
                                                image=img,
@@ -65,6 +57,7 @@ def predict_dir(input_path,
 
 
 def predict_np(model, image, patch_size=(1024, 1024), padding=15,batch_size=4):
+    image = utils.normalize(image)
     img_patches, pads = utils.image_to_patches(image, patch_size=patch_size, padding=padding)
     denoised_patches = model.predict(x=img_patches[:, :, :, np.newaxis], batch_size=batch_size)
 
