@@ -44,11 +44,14 @@ def train(even_path,
     except FileExistsError:
         pass
 
+    filenames_even = list(map(os.path.basename, even_files))
+    filenames_odd = list(map(os.path.basename, odd_files))
     for (dirpath, dirnames, filenames) in os.walk(movie_path):
         for filename in filenames:
             if filename.endswith(".mrc"):
                 path = os.path.join(dirpath, filename)
-                if path not in even_files and path not in odd_files:
+
+                if filename not in filenames_even and filename not in filenames_odd:
                     print("Create even/odd micrograph for:", path)
                     even, odd = utils.create_image_pair(path)
 
@@ -57,12 +60,12 @@ def train(even_path,
                         mrc.set_data(even)
 
                     even_files.append(out_even_mrc)
-
+                    filenames_even.append(filename)
                     out_odd_mrc = os.path.join(odd_path, filename)
                     with mrcfile.new(out_odd_mrc, overwrite=True) as mrc:
                         mrc.set_data(odd)
                     odd_files.append(out_odd_mrc)
-
+                    filenames_odd.append(filename)
 
     train_valid_split = int(0.1 * len(even_files))
     train_even_files = even_files[train_valid_split:]
