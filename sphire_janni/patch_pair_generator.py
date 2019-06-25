@@ -2,7 +2,7 @@ from keras.utils import Sequence
 from random import shuffle
 import numpy as np
 import mrcfile
-
+from . import utils
 
 class patch_pair_batch_generator(Sequence):
 
@@ -63,7 +63,8 @@ class patch_pair_batch_generator(Sequence):
                 rand_rotation = np.random.randint(4)
                 even = np.rot90(even, k=rand_rotation)
                 odd = np.rot90(odd, k=rand_rotation)
-
+            even = utils.normalize(even)
+            odd = utils.normalize(odd)
             x.append(even)
             y.append(odd)
         x = np.array(x)

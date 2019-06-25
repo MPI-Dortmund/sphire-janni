@@ -93,14 +93,21 @@ def create_image_pair(image_path):
     with mrcfile.open(image_path, permissive=True) as mrc:
         even = np.sum(mrc.data[::2], axis=0).astype(np.float32)
         odd = np.sum(mrc.data[1::2], axis=0).astype(np.float32)
-
+    '''
     even = (even-np.mean(even))/np.std(even)
     even[even<-3] = -3
     even[even>3] = 3
     odd = (odd-np.mean(odd))/np.std(odd)
     odd[odd < -3] = -3
     odd[odd > 3] = 3
+    '''
     return even, odd
+
+def normalize(img):
+    img = (img - np.mean(img)) / np.std(img)
+    img[img < -3] = -3
+    img[img > 3] = 3
+    return img
 
 def is_movie(path):
     with mrcfile.mmap(path, permissive=True) as mrc:

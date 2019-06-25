@@ -24,13 +24,15 @@ def predict_dir(input_path,
                 path = os.path.join(dirpath, filename)
                 if utils.is_movie(path):
                         even, odd = utils.create_image_pair(path)
+                        even = utils.normalize(even)
+                        odd = utils.normalize(odd)
                         denoised_even = predict_np(model,
                                    even,
                                    patch_size=patch_size,
                                    padding=padding,
                                    batch_size=batch_size)
                         denoised_odd = predict_np(model,
-                                                   even,
+                                                  odd,
                                                    patch_size=patch_size,
                                                    padding=padding,
                                                    batch_size=batch_size)
