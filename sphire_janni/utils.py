@@ -104,10 +104,12 @@ def create_image_pair(image_path):
     return even, odd
 
 def normalize(img):
-    img = (img - np.mean(img)) / np.std(img)
+    mean = np.mean(img)
+    sd = np.std(img)
+    img = (img - mean) / sd
     img[img < -3] = -3
     img[img > 3] = 3
-    return img
+    return img, mean, sd
 
 def is_movie(path):
     with mrcfile.mmap(path, permissive=True) as mrc:
