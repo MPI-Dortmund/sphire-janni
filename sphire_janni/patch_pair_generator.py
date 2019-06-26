@@ -63,8 +63,14 @@ class patch_pair_batch_generator(Sequence):
                 rand_rotation = np.random.randint(4)
                 even = np.rot90(even, k=rand_rotation)
                 odd = np.rot90(odd, k=rand_rotation)
-            even = utils.normalize(even)
-            odd = utils.normalize(odd)
+
+                if np.random.rand() > 0.5:
+                    help = odd
+                    odd = even
+                    even = help
+
+            even,_,_ = utils.normalize(even)
+            odd,_,_ = utils.normalize(odd)
             x.append(even)
             y.append(odd)
         x = np.array(x)
