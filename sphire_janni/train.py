@@ -102,5 +102,5 @@ def train(even_path,
                                epochs=epochs,
                         callbacks=None)
 
-    #model.save_weights(model_out_path)
+    model.save_weights(model_out_path)
     print("Training done. Weights saved to " + model_out_path)
