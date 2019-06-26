@@ -44,7 +44,7 @@ def predict_dir(input_path,
         sys.exit(0)
     for (dirpath, dirnames, filenames) in os.walk(input_path):
         for filename in filenames:
-            if filename.endswith(".mrc"):
+            if filename.endswith(utils.SUPPORTED_FILES):
                 path = os.path.join(dirpath, filename)
                 if utils.is_movie(path):
                         even, odd = utils.create_image_pair(path)
@@ -87,5 +87,5 @@ def predict_np(model, image, patch_size=(1024, 1024), padding=15,batch_size=4):
 
     denoised_micrograph = utils.patches_to_image(denoised_patches, pads,image_shape=image.shape,padding=padding)
     denoised_micrograph = denoised_micrograph.astype(np.float32)
-    denoised_micrograph = (denoised_micrograph+mean)*sd
+    denoised_micrograph = denoised_micrograph*sd + mean
     return denoised_micrograph

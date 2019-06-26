@@ -25,7 +25,7 @@ SOFTWARE.
 import mrcfile
 import numpy as np
 
-SUPPORTED_FILES=[".mrc"]
+SUPPORTED_FILES=(".mrc",".mrcs")
 
 def image_to_patches(image, patch_size=(1024, 1024), padding=15):
     roi_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)

@@ -46,12 +46,12 @@ def train(even_path,
     odd_files = []
     for (dirpath, dirnames, filenames) in os.walk(even_path):
         for filename in filenames:
-            if filename.endswith(".mrc"):
+            if filename.endswith(utils.SUPPORTED_FILES):
                 even_files.append(os.path.join(dirpath, filename))
 
     for (dirpath, dirnames, filenames) in os.walk(odd_path):
         for filename in filenames:
-            if filename.endswith(".mrc"):
+            if filename.endswith(utils.SUPPORTED_FILES):
                 odd_files.append(os.path.join(dirpath, filename))
 
     # Create training data for movies which are not in even/odd directory
@@ -68,7 +68,7 @@ def train(even_path,
     filenames_odd = list(map(os.path.basename, odd_files))
     for (dirpath, dirnames, filenames) in os.walk(movie_path):
         for filename in filenames:
-            if filename.endswith(".mrc"):
+            if filename.endswith(utils.SUPPORTED_FILES):
                 path = os.path.join(dirpath, filename)
 
                 if filename not in filenames_even and filename not in filenames_odd:
