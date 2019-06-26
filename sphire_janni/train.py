@@ -41,11 +41,6 @@ def train(even_path,
           batch_size=4):
 
     print("Start training")
-    if model == "unet":
-        model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
-    opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
-    model.compile(optimizer=opt, loss="mse")
-
     # Read training even/odd micrographs
     even_files = []
     odd_files = []
@@ -92,7 +87,20 @@ def train(even_path,
                     odd_files.append(out_odd_mrc)
                     filenames_odd.append(filename)
 
-    train_valid_split = int(0.1 * len(even_files))
+    trained_model = do_train(even_files,
+                             odd_files,
+                             model=model,
+                             learning_rate=learning_rate,
+                             patch_size=patch_size,
+                             batch_size=batch_size,
+                             epochs=epochs,
+                             valid_split = 0.1)
+    trained_model.save_weights(model_out_path)
+    print("Training done. Weights saved to " + model_out_path)
+
+
+def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50, patch_size=(1024,1024), batch_size=4, valid_split = 0.1):
+    train_valid_split = int(valid_split * len(even_files))
     train_even_files = even_files[train_valid_split:]
     valid_even_files = even_files[:train_valid_split]
     train_odd_files = odd_files[train_valid_split:]
@@ -100,15 +108,15 @@ def train(even_path,
     print(train_even_files)
     print(valid_even_files)
     train_gen = gen.patch_pair_batch_generator(even_images=train_even_files,
-                                        odd_images=train_odd_files,
-                                        patch_size=patch_size,
-                                        batch_size=batch_size,
-                                        augment=True)
+                                               odd_images=train_odd_files,
+                                               patch_size=patch_size,
+                                               batch_size=batch_size,
+                                               augment=True)
 
     valid_gen = gen.patch_pair_batch_generator(even_images=valid_even_files,
-                                        odd_images=valid_odd_files,
-                                        patch_size=patch_size,
-                                        batch_size=batch_size)
+                                               odd_images=valid_odd_files,
+                                               patch_size=patch_size,
+                                               batch_size=batch_size)
 
     '''
     model_checkoint = ModelCheckpoint(
@@ -121,10 +129,15 @@ def train(even_path,
                 period=1,
             )
     '''
-    model.fit_generator(generator=train_gen,
-                               validation_data=valid_gen,
-                               epochs=epochs,
-                        callbacks=None)
+    if model == "unet":
+        model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
+    opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
+    model.compile(optimizer=opt, loss="mse")
 
-    model.save_weights(model_out_path)
-    print("Training done. Weights saved to " + model_out_path)
+    model.fit_generator(generator=train_gen,
+                        validation_data=valid_gen,
+                        epochs=epochs,
+                        callbacks=None)
+    return model
+
+
