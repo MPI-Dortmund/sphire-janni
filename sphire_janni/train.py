@@ -4,6 +4,7 @@ from keras.optimizers import Adam
 import os
 from . import utils
 import mrcfile
+from keras.callbacks import ModelCheckpoint
 
 def train(even_path,
           odd_path,
@@ -85,9 +86,21 @@ def train(even_path,
                                         patch_size=patch_size,
                                         batch_size=batch_size)
 
+    '''
+    model_checkoint = ModelCheckpoint(
+        model_out_path,
+                monitor="val_loss",
+                verbose=1,
+                save_best_only=True,
+                save_weights_only=False,
+                mode="min",
+                period=1,
+            )
+    '''
     model.fit_generator(generator=train_gen,
                                validation_data=valid_gen,
-                               epochs=epochs)
+                               epochs=epochs,
+                        callbacks=None)
 
-    model.save_weights(model_out_path)
+    #model.save_weights(model_out_path)
     print("Training done. Weights saved to " + model_out_path)
