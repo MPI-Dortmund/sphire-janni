@@ -23,20 +23,10 @@ SOFTWARE.
 '''
 
 from keras.models import Model
-from keras.layers import Input, Add, PReLU, Conv2DTranspose, Concatenate, MaxPooling2D, UpSampling2D, Dropout, ReLU
+from keras.layers import Input, Add, Conv2DTranspose, MaxPooling2D, UpSampling2D, ReLU
 from keras.layers.convolutional import Conv2D
-from keras.layers.normalization import BatchNormalization
-from keras.optimizers import Adam
-from keras.callbacks import Callback
-from keras import backend as K
-from matplotlib import pyplot as plt
-from keras.callbacks import LearningRateScheduler, ModelCheckpoint
-from keras.utils import  plot_model
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.merge import concatenate
-
-
-import tensorflow as tf
 
 
 def get_rednet(filter_size=(3, 3), num_filters=64, num_conv_layers=15, input_size=(128, 128),
