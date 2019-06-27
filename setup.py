@@ -42,6 +42,7 @@ setup(
         "Keras >= 2.2.4",
         "numpy <= 1.14.5",
         "h5py >= 2.5.0",
+        "imagecodecs-lite",
         "tifffile",
         get_tensorflow("sphire_janni", "__init__.py"),
     ],
