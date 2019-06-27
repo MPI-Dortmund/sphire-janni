@@ -20,7 +20,6 @@ def find_version(*file_paths):
 
 def get_tensorflow(*file_paths):
     version_file = read(*file_paths)
-    #print("Version file:", version_file)
     if "dev0"in version_file:
         print("Use tensorflow CPU")
         return "tensorflow == 1.10.1"
@@ -35,8 +34,6 @@ setup(
     url='',
     license='MIT',
     author='Thorsten Wagner',
-    #package_data={'cryolo': ['full_yolo_backend.h5']},
-    #setup_requires=["lineenhancer >= 1.0.3"],
     install_requires=[
         "mrcfile >= 1.0.0",
         "Keras >= 2.2.4",
