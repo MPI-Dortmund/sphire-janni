@@ -23,9 +23,10 @@ SOFTWARE.
 '''
 
 import mrcfile
+import tifffile
 import numpy as np
-
-SUPPORTED_FILES=(".mrc",".mrcs")
+from . import utils
+SUPPORTED_FILES=(".mrc",".mrcs",".tiff",".tif")
 
 def image_to_patches(image, patch_size=(1024, 1024), padding=15):
     roi_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)
@@ -114,17 +115,11 @@ def patches_to_image(patches, pads, image_shape=(4096, 4096), padding=15):
 
 
 def create_image_pair(image_path):
-    with mrcfile.open(image_path, permissive=True) as mrc:
-        even = np.sum(mrc.data[::2], axis=0).astype(np.float32)
-        odd = np.sum(mrc.data[1::2], axis=0).astype(np.float32)
-    '''
-    even = (even-np.mean(even))/np.std(even)
-    even[even<-3] = -3
-    even[even>3] = 3
-    odd = (odd-np.mean(odd))/np.std(odd)
-    odd[odd < -3] = -3
-    odd[odd > 3] = 3
-    '''
+
+    data = utils.read_image(image_path)
+    even = np.sum(data[::2], axis=0).astype(np.float32)
+    odd = np.sum(data[1::2], axis=0).astype(np.float32)
+
     return even, odd
 
 def normalize(img):
@@ -135,6 +130,20 @@ def normalize(img):
     img[img > 3] = 3
     return img, mean, sd
 
+def read_image(path):
+    if path.endswith((".tif",".tiff")):
+        return tifffile.imread(path)
+    elif path.endswith(("mrc","mrcs")):
+        with mrcfile.mmap(path, permissive=True) as mrc:
+            return mrc.data
+    else:
+        print("Image format not supported. File: ", path)
+        return None
+
 def is_movie(path):
-    with mrcfile.mmap(path, permissive=True) as mrc:
-        return mrc.data.ndim > 2 and mrc.data.shape[0] > 1
+    if path.endswith((".tif",".tiff")):
+        tif = tifffile.TiffFile(path)
+        return len(tif.pages)>1
+    elif path.endswith(("mrc","mrcs")):
+        with mrcfile.mmap(path, permissive=True) as mrc:
+            return mrc.data.ndim > 2 and mrc.data.shape[0] > 1

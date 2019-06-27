@@ -28,6 +28,7 @@ from . import models
 import sys
 import os
 import mrcfile
+import tifffile
 
 def predict_dir(input_path,
                 output_path ,
@@ -74,8 +75,12 @@ def predict_dir(input_path,
                     pass
                 opath = os.path.join(output_path, filename)
                 print("Write denoised image", opath)
-                with mrcfile.new(opath, overwrite=True) as mrc:
-                    mrc.set_data(denoised)
+                if opath.endswith((".mrc",".mrcs")):
+                    with mrcfile.new(opath, overwrite=True) as mrc:
+                        mrc.set_data(denoised)
+                elif opath.endswith((".tif",".tiff")):
+                    tifffile.imwrite(opath,denoised)
+
 
 
 
