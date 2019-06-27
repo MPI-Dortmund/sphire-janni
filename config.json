@@ -6,9 +6,9 @@
     },
 
     "train": {
-        "even_dir":             "/home/twagner/Projects/denoise/data/even/",
-        "odd_dir":              "/home/twagner/Projects/denoise/data/odd/",
-        "movie_dir":            "",
+        "even_dir":             "/directory/to/write/even/average/",
+        "odd_dir":              "/directory/to/write/odd/average/",
+        "movie_dir":            "/directroy/to/movies/",
         "pretrained_weights":   "",
         "batch_size":           4,
         "learning_rate":        1e-3,
