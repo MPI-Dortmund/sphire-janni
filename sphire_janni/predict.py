@@ -58,10 +58,9 @@ def predict_dir(input_path,
                                                    patch_size=patch_size,
                                                    padding=padding,
                                                    batch_size=batch_size)
-                        denoised = (denoised_even+denoised_odd)/2
+                        denoised = denoised_even+denoised_odd
                 else:
-                    with mrcfile.open(path, permissive=True) as mrc:
-                        img = mrc.data
+                    img = utils.read_image(path)
                     img = img.squeeze()
                     denoised = predict_np(model,
                                                image=img,
