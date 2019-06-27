@@ -55,18 +55,18 @@ class patch_pair_batch_generator(Sequence):
             even_img_path = self.even_images[img_index]
             odd_img_path = self.odd_images[img_index]
 
-            with mrcfile.mmap(even_img_path, permissive=True) as mrc:
+            data = utils.read_image(even_img_path)
 
-                start0 = np.random.randint(0, mrc.data.shape[0] - self.patch_size[0] + 1)
-                end0 = start0 + self.patch_size[0]
+            start0 = np.random.randint(0, data.shape[0] - self.patch_size[0] + 1)
+            end0 = start0 + self.patch_size[0]
 
-                start1 = np.random.randint(0, mrc.data.shape[1] - self.patch_size[1] + 1)
-                end1 = start1 + self.patch_size[1]
-                even = mrc.data[start0:end0, start1:end1].astype(np.float32)
+            start1 = np.random.randint(0, data.shape[1] - self.patch_size[1] + 1)
+            end1 = start1 + self.patch_size[1]
+            even = data[start0:end0, start1:end1].astype(np.float32)
 
-            with mrcfile.mmap(odd_img_path, permissive=True) as mrc:
+            data = utils.read_image(odd_img_path)
 
-                odd = mrc.data[start0:end0, start1:end1].astype(np.float32)
+            odd = data[start0:end0, start1:end1].astype(np.float32)
 
             if self.augment:
                 flip_selection = np.random.randint(0, 4)
