@@ -28,6 +28,7 @@ from keras.optimizers import Adam
 import os
 from . import utils
 import mrcfile
+import tifffile
 from keras.callbacks import ModelCheckpoint
 
 def train(even_path,
@@ -74,17 +75,23 @@ def train(even_path,
                 if filename not in filenames_even and filename not in filenames_odd:
                     print("Create even/odd micrograph for:", path)
                     even, odd = utils.create_image_pair(path)
+                    out_even_path = os.path.join(even_path, filename)
+                    out_odd_path = os.path.join(odd_path, filename)
+                    if path.endswith(("mrcs","mrc")):
+                        with mrcfile.new(out_even_path, overwrite=True) as mrc:
+                            mrc.set_data(even)
 
-                    out_even_mrc = os.path.join(even_path, filename)
-                    with mrcfile.new(out_even_mrc, overwrite=True) as mrc:
-                        mrc.set_data(even)
 
-                    even_files.append(out_even_mrc)
+                        with mrcfile.new(out_odd_path, overwrite=True) as mrc:
+                            mrc.set_data(odd)
+
+                    elif path.endswith((".tif",".tiff")):
+                        tifffile.imwrite(out_even_path, even)
+                        tifffile.imwrite(out_odd_path, odd)
+
+                    even_files.append(out_even_path)
+                    odd_files.append(out_odd_path)
                     filenames_even.append(filename)
-                    out_odd_mrc = os.path.join(odd_path, filename)
-                    with mrcfile.new(out_odd_mrc, overwrite=True) as mrc:
-                        mrc.set_data(odd)
-                    odd_files.append(out_odd_mrc)
                     filenames_odd.append(filename)
 
     trained_model = do_train(even_files,
