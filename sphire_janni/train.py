@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2019 Thorsten Wagner
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 from . import models
 from . import patch_pair_generator as gen
@@ -30,33 +30,41 @@ from . import utils
 import mrcfile
 import tifffile
 
-def train(even_path,
-          odd_path,
-          model_out_path,
-          movie_path=None,
-          learning_rate=0.001,
-          epochs=50,
-          model="unet",
-          patch_size=(1024,1024),
-          batch_size=4):
+
+def train(
+    even_path,
+    odd_path,
+    model_out_path,
+    movie_path=None,
+    learning_rate=0.001,
+    epochs=50,
+    model="unet",
+    patch_size=(1024, 1024),
+    batch_size=4,
+):
 
     print("Start training")
     # Read training even/odd micrographs
-    even_files, odd_files = calc_even_odd(movie_path, even_path, odd_path,recursive=True)
+    even_files, odd_files = calc_even_odd(
+        movie_path, even_path, odd_path, recursive=True
+    )
 
-    trained_model = do_train(even_files,
-                             odd_files,
-                             model=model,
-                             learning_rate=learning_rate,
-                             patch_size=patch_size,
-                             batch_size=batch_size,
-                             epochs=epochs,
-                             valid_split = 0.1)
+    trained_model = do_train(
+        even_files,
+        odd_files,
+        model=model,
+        learning_rate=learning_rate,
+        patch_size=patch_size,
+        batch_size=batch_size,
+        epochs=epochs,
+        valid_split=0.1,
+    )
     trained_model.save_weights(model_out_path)
     print("Training done. Weights saved to " + model_out_path)
 
-def calc_even_odd(movie_path,even_path,odd_path, recursive=True):
-    '''
+
+def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
+    """
     Calculates averages based on the even/odd frames of the movies in movie_path and save the
     respective averages in even_path or odd_path.
     :param movie_path: Path to movie files. Supported are .mrc, .mrcs, .tiff and .tif.
@@ -64,7 +72,7 @@ def calc_even_odd(movie_path,even_path,odd_path, recursive=True):
     :param odd_path: Path here "odd averages" will be written
     :param recursive: If true, the movie_path is scanned recurively for movies.
     :return:
-    '''
+    """
 
     # Read training even/odd micrographs
     even_files = []
@@ -121,8 +129,18 @@ def calc_even_odd(movie_path,even_path,odd_path, recursive=True):
     return even_files, odd_files
 
 
-def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50, patch_size=(1024,1024), callbacks=[], batch_size=4, valid_split = 0.1):
-    '''
+def do_train(
+    even_files,
+    odd_files,
+    model="unet",
+    learning_rate=0.001,
+    epochs=50,
+    patch_size=(1024, 1024),
+    callbacks=[],
+    batch_size=4,
+    valid_split=0.1,
+):
+    """
     Training noise2noise model.
     :param even_files: List with paths to averages based on the even frames
     :param odd_files: List with paths to averages based on the odd frames
@@ -134,7 +152,7 @@ def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50,
     :param batch_size: Mini-batch size used during training
     :param valid_split: training-validion split.
     :return: Trained keras model
-    '''
+    """
     train_valid_split = int(valid_split * len(even_files))
     train_even_files = even_files[train_valid_split:]
     valid_even_files = even_files[:train_valid_split]
@@ -142,26 +160,30 @@ def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50,
     valid_odd_files = odd_files[:train_valid_split]
     print(train_even_files)
     print(valid_even_files)
-    train_gen = gen.patch_pair_batch_generator(even_images=train_even_files,
-                                               odd_images=train_odd_files,
-                                               patch_size=patch_size,
-                                               batch_size=batch_size,
-                                               augment=True)
+    train_gen = gen.patch_pair_batch_generator(
+        even_images=train_even_files,
+        odd_images=train_odd_files,
+        patch_size=patch_size,
+        batch_size=batch_size,
+        augment=True,
+    )
 
-    valid_gen = gen.patch_pair_batch_generator(even_images=valid_even_files,
-                                               odd_images=valid_odd_files,
-                                               patch_size=patch_size,
-                                               batch_size=batch_size)
+    valid_gen = gen.patch_pair_batch_generator(
+        even_images=valid_even_files,
+        odd_images=valid_odd_files,
+        patch_size=patch_size,
+        batch_size=batch_size,
+    )
 
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
     opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
     model.compile(optimizer=opt, loss="mse")
 
-    model.fit_generator(generator=train_gen,
-                        validation_data=valid_gen,
-                        epochs=epochs,
-                        callbacks=callbacks)
+    model.fit_generator(
+        generator=train_gen,
+        validation_data=valid_gen,
+        epochs=epochs,
+        callbacks=callbacks,
+    )
     return model
-
-

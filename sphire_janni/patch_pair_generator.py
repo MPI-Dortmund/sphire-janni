@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2019 Thorsten Wagner
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 from keras.utils import Sequence
 from random import shuffle
@@ -28,9 +28,11 @@ import numpy as np
 import mrcfile
 from . import utils
 
-class patch_pair_batch_generator(Sequence):
 
-    def __init__(self, even_images, odd_images, patch_size, batch_size=4, augment=False):
+class patch_pair_batch_generator(Sequence):
+    def __init__(
+        self, even_images, odd_images, patch_size, batch_size=4, augment=False
+    ):
         self.even_images = even_images
         self.odd_images = odd_images
         self.patch_size = patch_size
@@ -93,8 +95,8 @@ class patch_pair_batch_generator(Sequence):
                     odd = even
                     even = help
 
-            even,_,_ = utils.normalize(even)
-            odd,_,_ = utils.normalize(odd)
+            even, _, _ = utils.normalize(even)
+            odd, _, _ = utils.normalize(odd)
             x.append(even)
             y.append(odd)
         x = np.array(x)

@@ -1,4 +1,4 @@
-'''
+"""
 MIT License
 
 Copyright (c) 2019 Thorsten Wagner
@@ -20,31 +20,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-'''
+"""
 
 import mrcfile
 import tifffile
 import numpy as np
 from . import utils
-SUPPORTED_FILES=(".mrc",".mrcs",".tiff",".tif")
+
+SUPPORTED_FILES = (".mrc", ".mrcs", ".tiff", ".tif")
+
 
 def image_to_patches(image, patch_size=(1024, 1024), padding=15):
     roi_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)
 
     pad_before0 = padding
-    diff0 = (image.shape[0] - roi_size[0] * (image.shape[0] // roi_size[0]))
+    diff0 = image.shape[0] - roi_size[0] * (image.shape[0] // roi_size[0])
     if diff0 == 0:
         pad_after0 = 0
     else:
         pad_after0 = patch_size[0] - diff0
 
     pad_before1 = padding
-    diff1 = (image.shape[1] - roi_size[1] * (image.shape[1] // roi_size[1]))
+    diff1 = image.shape[1] - roi_size[1] * (image.shape[1] // roi_size[1])
     if diff1 == 0:
         pad_after1 = 0
     else:
         pad_after1 = patch_size[1] - (
-                    image.shape[1] - roi_size[1] * (image.shape[1] // roi_size[1]))
+            image.shape[1] - roi_size[1] * (image.shape[1] // roi_size[1])
+        )
     pads = [(pad_before0, pad_after0), (pad_before1, pad_after1)]
 
     n0 = int(np.ceil(image.shape[0] / roi_size[0]))
@@ -75,7 +78,11 @@ def patches_to_image(patches, pads, image_shape=(4096, 4096), padding=15):
 
     entry_index = 0
     image = np.zeros(
-        shape=(image_shape[0] + pads[0][0] + pads[0][1], image_shape[1] + pads[1][0] + pads[1][1]))
+        shape=(
+            image_shape[0] + pads[0][0] + pads[0][1],
+            image_shape[1] + pads[1][0] + pads[1][1],
+        )
+    )
     n0 = int(np.ceil(image_shape[0] / roi_size[0]))
     n1 = int(np.ceil(image_shape[1] / roi_size[0]))
     for off0 in range(n0):
@@ -86,31 +93,38 @@ def patches_to_image(patches, pads, image_shape=(4096, 4096), padding=15):
             start1 = pads[1][0] + off1 * roi_size[1]
             end1 = start1 + roi_size[1]
             if off0 == 0 and off1 > 0 and off1 < (n1 - 1):
-                image[0:end0, start1:end1] = patches[entry_index, 0:-padding, padding:-padding, 0]
+                image[0:end0, start1:end1] = patches[
+                    entry_index, 0:-padding, padding:-padding, 0
+                ]
             elif off0 > 0 and off0 < (n0 - 1) and off1 == 0:
-                image[start0:end0, 0:end1] = patches[entry_index, padding:-padding, 0:-padding, 0]
+                image[start0:end0, 0:end1] = patches[
+                    entry_index, padding:-padding, 0:-padding, 0
+                ]
             elif off0 == 0 and off1 == 0:
                 image[0:end0, 0:end1] = patches[entry_index, 0:-padding, 0:-padding, 0]
             elif off0 > 0 and off0 < (n0 - 1) and off1 == (n1 - 1):
                 roi = patches[entry_index, padding:-padding, padding:, 0]
-                image[start0:end0, start1:(start1 + roi.shape[1])] = roi
+                image[start0:end0, start1 : (start1 + roi.shape[1])] = roi
             elif off0 == (n0 - 1) and off1 > 0 and off1 < (n1 - 1):
                 roi = patches[entry_index, padding:, padding:-padding, 0]
-                image[start0:(start0 + roi.shape[0]), start1:end1] = roi
+                image[start0 : (start0 + roi.shape[0]), start1:end1] = roi
             elif off0 == (n0 - 1) and off1 == (n1 - 1):
                 roi = patches[entry_index, padding:, padding:, 0]
-                image[start0:(start0 + roi.shape[0]), start1:(start1 + roi.shape[1])] = roi
+                image[
+                    start0 : (start0 + roi.shape[0]), start1 : (start1 + roi.shape[1])
+                ] = roi
             elif off0 == 0 and off1 == (n1 - 1):
                 roi = patches[entry_index, :-padding, padding:, 0]
-                image[:end0, start1:(start1 + roi.shape[1])] = roi
+                image[:end0, start1 : (start1 + roi.shape[1])] = roi
             elif off0 == (n0 - 1) and off1 == 0:
                 roi = patches[entry_index, padding:, :-padding, 0]
-                image[start0:(start0 + roi.shape[0]), :end1] = roi
+                image[start0 : (start0 + roi.shape[0]), :end1] = roi
             else:
-                image[start0:end0, start1:end1] = patches[entry_index, padding:-padding,
-                                                  padding:-padding, 0]
+                image[start0:end0, start1:end1] = patches[
+                    entry_index, padding:-padding, padding:-padding, 0
+                ]
             entry_index = entry_index + 1
-    image = image[pads[0][0]:-pads[0][1], pads[1][0]:-pads[1][1]]
+    image = image[pads[0][0] : -pads[0][1], pads[1][0] : -pads[1][1]]
     return image
 
 
@@ -122,6 +136,7 @@ def create_image_pair(image_path):
 
     return even, odd
 
+
 def normalize(img):
     mean = np.mean(img)
     sd = np.std(img)
@@ -130,20 +145,22 @@ def normalize(img):
     img[img > 3] = 3
     return img, mean, sd
 
+
 def read_image(path):
-    if path.endswith((".tif",".tiff")):
+    if path.endswith((".tif", ".tiff")):
         return tifffile.imread(path)
-    elif path.endswith(("mrc","mrcs")):
+    elif path.endswith(("mrc", "mrcs")):
         with mrcfile.mmap(path, permissive=True) as mrc:
             return mrc.data
     else:
         print("Image format not supported. File: ", path)
         return None
 
+
 def is_movie(path):
-    if path.endswith((".tif",".tiff")):
+    if path.endswith((".tif", ".tiff")):
         tif = tifffile.TiffFile(path)
-        return len(tif.pages)>1
-    elif path.endswith(("mrc","mrcs")):
+        return len(tif.pages) > 1
+    elif path.endswith(("mrc", "mrcs")):
         with mrcfile.mmap(path, permissive=True) as mrc:
             return mrc.data.ndim > 2 and mrc.data.shape[0] > 1
