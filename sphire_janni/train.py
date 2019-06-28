@@ -35,7 +35,7 @@ import mrcfile
 import tifffile
 
 
-def train(
+def train_movie_dir(
     even_path,
     odd_path,
     model_out_path,
@@ -46,6 +46,19 @@ def train(
     patch_size=(1024, 1024),
     batch_size=4,
 ):
+    '''
+    Does the complete noise2noise training.
+    :param even_path: Path where "even averages" will be written.
+    :param odd_path: Path here "odd averages" will be written
+    :param model_out_path: Filepath where model will be written.
+    :param movie_path: Path to movie files. Supported are .mrc, .mrcs, .tiff and .tif.
+    :param learning_rate: Learning rate used during training.
+    :param epochs: Number of epochs to train the network
+    :param model: Model indentifier. Right now only "unet" is supported.
+    :param patch_size: Patch size in pixel. The network is trained on random patches of the images.
+    :param batch_size: Mini-batch size used during training.
+    :return:
+    '''
 
     print("Start training")
     # Read training even/odd micrographs
@@ -53,7 +66,7 @@ def train(
         movie_path, even_path, odd_path, recursive=True
     )
 
-    trained_model = do_train(
+    trained_model = train_even_odd(
         even_files,
         odd_files,
         model=model,
@@ -133,7 +146,7 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
     return even_files, odd_files
 
 
-def do_train(
+def train_even_odd(
     even_files,
     odd_files,
     model="unet",
