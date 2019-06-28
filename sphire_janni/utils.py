@@ -35,6 +35,13 @@ SUPPORTED_FILES = (".mrc", ".mrcs", ".tiff", ".tif")
 
 
 def image_to_patches(image, patch_size=(1024, 1024), padding=15):
+    '''
+    Divides an image into patches
+    :param image: 2D numpy array
+    :param patch_size: Size of patches in pixel
+    :param padding: Number of pixel the patches do overlap.
+    :return: 3D Numpy array with shape (NUM_PATCHES,PATCH_WIDTH,PATCH_HIGHT) and applied pads
+    '''
     roi_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)
 
     pad_before0 = padding
@@ -76,6 +83,14 @@ def image_to_patches(image, patch_size=(1024, 1024), padding=15):
 
 
 def patches_to_image(patches, pads, image_shape=(4096, 4096), padding=15):
+    '''
+    Stitches the image together given the patches.
+    :param patches: 3D numpy array with shape (NUM_PATCHES,PATCH_WIDTH,PATCH_HIGHT)
+    :param pads: Applied pads
+    :param image_shape: Original image size
+    :param padding: Specified padding
+    :return: Image as 2D numpy array
+    '''
     patch_size = (patches.shape[1], patches.shape[2])
 
     roi_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)
@@ -132,9 +147,14 @@ def patches_to_image(patches, pads, image_shape=(4096, 4096), padding=15):
     return image
 
 
-def create_image_pair(image_path):
+def create_image_pair(movie_path):
+    '''
+    Calculates averages based on even / odd frames in a movie
+    :param movie_path: Path to movie
+    :return: even and odd average
+    '''
 
-    data = utils.read_image(image_path)
+    data = utils.read_image(movie_path)
     even = np.sum(data[::2], axis=0).astype(np.float32)
     odd = np.sum(data[1::2], axis=0).astype(np.float32)
 
@@ -142,6 +162,11 @@ def create_image_pair(image_path):
 
 
 def normalize(img):
+    '''
+    Normalize a 2D image. Furthermore it will limit the values to -3 and 3 standard deviations.
+    :param img: Image to normalize (2D numpy array)
+    :return:  Normalized image, mean, standard diviation
+    '''
     mean = np.mean(img)
     sd = np.std(img)
     img = (img - mean) / sd
