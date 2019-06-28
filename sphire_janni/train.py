@@ -29,7 +29,6 @@ import os
 from . import utils
 import mrcfile
 import tifffile
-from keras.callbacks import ModelCheckpoint
 
 def train(even_path,
           odd_path,
