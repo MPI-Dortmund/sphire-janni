@@ -57,7 +57,7 @@ def train_movie_dir(
     :param model: Model indentifier. Right now only "unet" is supported.
     :param patch_size: Patch size in pixel. The network is trained on random patches of the images.
     :param batch_size: Mini-batch size used during training.
-    :return:
+    :return: trained model
     '''
 
     print("Start training")
@@ -78,6 +78,8 @@ def train_movie_dir(
     )
     trained_model.save_weights(model_out_path)
     print("Training done. Weights saved to " + model_out_path)
+    return trained_model
+
 
 
 def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
