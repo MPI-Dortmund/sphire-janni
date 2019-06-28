@@ -34,8 +34,7 @@ from . import utils
 import mrcfile
 import tifffile
 
-
-def train_movie_dir(
+def train(
     even_path,
     odd_path,
     model_out_path,
@@ -62,11 +61,50 @@ def train_movie_dir(
 
     print("Start training")
     # Read training even/odd micrographs
+    trained_model = train_movie_dir(
+        even_path=even_path,
+        odd_path=odd_path,
+        movie_path=movie_path,
+        learning_rate=learning_rate,
+        epochs=epochs,
+        model=model,
+        patch_size=patch_size,
+        batch_size=batch_size,
+        )
+    print("Training done. Weights saved to " + model_out_path)
+
+    return trained_model
+
+def train_movie_dir(
+    even_path,
+    odd_path,
+    movie_path=None,
+    learning_rate=0.001,
+    epochs=50,
+    model="unet",
+    patch_size=(1024, 1024),
+    batch_size=4,
+):
+    '''
+    Does the complete noise2noise training.
+    :param even_path: Path where "even averages" will be written.
+    :param odd_path: Path here "odd averages" will be written
+    :param model_out_path: Filepath where model will be written.
+    :param movie_path: Path to movie files. Supported are .mrc, .mrcs, .tiff and .tif.
+    :param learning_rate: Learning rate used during training.
+    :param epochs: Number of epochs to train the network
+    :param model: Model indentifier. Right now only "unet" is supported.
+    :param patch_size: Patch size in pixel. The network is trained on random patches of the images.
+    :param batch_size: Mini-batch size used during training.
+    :return: trained model
+    '''
+
+    # Read training even/odd micrographs
     even_files, odd_files = calc_even_odd(
         movie_path, even_path, odd_path, recursive=True
     )
 
-    trained_model = train_even_odd(
+    trained_model = train_pairs(
         even_files,
         odd_files,
         model=model,
@@ -76,8 +114,6 @@ def train_movie_dir(
         epochs=epochs,
         valid_split=0.1,
     )
-    trained_model.save_weights(model_out_path)
-    print("Training done. Weights saved to " + model_out_path)
     return trained_model
 
 
@@ -148,9 +184,9 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
     return even_files, odd_files
 
 
-def train_even_odd(
-    even_files,
-    odd_files,
+def train_pairs(
+    pair_files_a,
+    pari_files_b,
     model="unet",
     learning_rate=0.001,
     epochs=50,
@@ -161,8 +197,8 @@ def train_even_odd(
 ):
     """
     Training noise2noise model.
-    :param even_files: List with paths to averages based on the even frames
-    :param odd_files: List with paths to averages based on the odd frames
+    :param pair_files_a: List with paths to the first images of the image pairs.
+    :param pari_files_b: List with paths to the second images of the image pairs.
     :param model: Model indentifier. Right now only "unet" is supported.
     :param learning_rate: Learning rate used during training.
     :param epochs: Number of epochs to train the network
@@ -172,24 +208,23 @@ def train_even_odd(
     :param valid_split: training-validion split.
     :return: Trained keras model
     """
-    train_valid_split = int(valid_split * len(even_files))
-    train_even_files = even_files[train_valid_split:]
-    valid_even_files = even_files[:train_valid_split]
-    train_odd_files = odd_files[train_valid_split:]
-    valid_odd_files = odd_files[:train_valid_split]
-    print(train_even_files)
-    print(valid_even_files)
+    train_valid_split = int(valid_split * len(pair_files_a))
+    train_pair_a_files = pair_files_a[train_valid_split:]
+    valid_pair_a_files = pair_files_a[:train_valid_split]
+    train_pair_b_files = pari_files_b[train_valid_split:]
+    valid_pair_b_files = pari_files_b[:train_valid_split]
+
     train_gen = gen.patch_pair_batch_generator(
-        even_images=train_even_files,
-        odd_images=train_odd_files,
+        pair_a_images=train_pair_a_files,
+        pair_b_images=train_pair_b_files,
         patch_size=patch_size,
         batch_size=batch_size,
         augment=True,
     )
 
     valid_gen = gen.patch_pair_batch_generator(
-        even_images=valid_even_files,
-        odd_images=valid_odd_files,
+        pair_a_images=valid_pair_a_files,
+        pair_b_images=valid_pair_b_files,
         patch_size=patch_size,
         batch_size=batch_size,
     )

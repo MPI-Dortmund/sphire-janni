@@ -71,7 +71,7 @@ def _main_():
 
         from . import train
 
-        train.train_movie_dir(
+        train.train(
             even_path=config["train"]["even_dir"],
             odd_path=config["train"]["odd_dir"],
             model_out_path=config["train"]["saved_weights_name"],
