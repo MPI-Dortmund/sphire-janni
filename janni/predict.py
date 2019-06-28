@@ -34,8 +34,7 @@ import os
 import mrcfile
 import tifffile
 
-
-def predict_dir(
+def predict(
     input_path,
     output_path,
     model_path,
@@ -44,23 +43,41 @@ def predict_dir(
     padding=15,
     batch_size=4,
 ):
-    """
-    Denoises images / movies
-    :param input_path: Input path to directory with movies / averages to denoise.
-    :param output_path: Folder where results should be written.
-    :param model_path: Path to trained model.
-    :param model: Model identifier
-    :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
-    :param padding: Padding to remove edge effects.
-    :param batch_size: Number of patches denoised in parallel.
-    :return: Denoised image (2D numpy array)
-    """
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size)
         model.load_weights(model_path)
     else:
         print("Not supported model", model, "Stop")
         sys.exit(0)
+
+    predict_dir(
+        input_path=input_path,
+        output_path=output_path,
+        model=model,
+        patch_size=patch_size,
+        padding=padding,
+        batch_size=batch_size,
+    )
+
+def predict_dir(
+    input_path,
+    output_path,
+    model,
+    patch_size=(1024, 1024),
+    padding=15,
+    batch_size=4,
+):
+    """
+    Denoises images / movies
+    :param input_path: Input path to directory with movies / averages to denoise.
+    :param output_path: Folder where results should be written.
+    :param model: Trained model
+    :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
+    :param padding: Padding to remove edge effects.
+    :param batch_size: Number of patches denoised in parallel.
+    :return: Denoised image (2D numpy array)
+    """
+
     for (dirpath, dirnames, filenames) in os.walk(input_path):
         for filename in filenames:
             if filename.endswith(utils.SUPPORTED_FILES):

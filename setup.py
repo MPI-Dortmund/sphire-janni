@@ -28,9 +28,9 @@ def get_tensorflow(*file_paths):
         return "tensorflow-gpu == 1.10.1"
 setup(
     name='janni',
-    version=find_version("sphire_janni", "__init__.py"),
+    version=find_version("janni", "__init__.py"),
     python_requires='>3.4.0',
-    packages=['sphire_janni'],
+    packages=['janni'],
     url='',
     license='MIT',
     author='Thorsten Wagner',
@@ -41,12 +41,12 @@ setup(
         "h5py >= 2.5.0",
         "imagecodecs-lite",
         "tifffile",
-        get_tensorflow("sphire_janni", "__init__.py"),
+        get_tensorflow("janni", "__init__.py"),
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',
     description='noise 2 noise for cryo em data',
     entry_points={
         'console_scripts': [
-            'janni.py = sphire_janni.janni:_main_'
+            'janni_denoise.py = janni.jmain:_main_'
         ]},
 )

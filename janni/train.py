@@ -71,6 +71,7 @@ def train(
         patch_size=patch_size,
         batch_size=batch_size,
         )
+    trained_model.save_weights(model_out_path)
     print("Training done. Weights saved to " + model_out_path)
 
     return trained_model
@@ -95,7 +96,7 @@ def train_movie_dir(
     :param epochs: Number of epochs to train the network
     :param model: Model indentifier. Right now only "unet" is supported.
     :param patch_size: Patch size in pixel. The network is trained on random patches of the images.
-    :param batch_size: Mini-batch size used during training.
+    :param batch_size: n
     :return: trained model
     '''
 
