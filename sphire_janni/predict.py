@@ -37,6 +37,17 @@ def predict_dir(input_path,
                 patch_size=(1024,1024),
                 padding=15,
                 batch_size=4):
+    '''
+    Denoises images / movies
+    :param input_path: Input path to directory with movies / averages to denoise.
+    :param output_path: Folder where results should be written.
+    :param model_path: Path to trained model.
+    :param model: Model identifier
+    :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
+    :param padding: Padding to remove edge effects.
+    :param batch_size: Number of patches denoised in parallel.
+    :return: Denoised image (2D numpy array)
+    '''
     if model=="unet":
         model = models.get_model_unet(input_size=patch_size)
         model.load_weights(model_path)
@@ -85,6 +96,18 @@ def predict_dir(input_path,
 
 
 def predict_np(model, image, patch_size=(1024, 1024), padding=15,batch_size=4):
+    '''
+    Denoises an image given a keras model.
+    :param model: Trained noise2noise model
+    :param image: Image as 2D numpy array
+    :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
+    :param padding: Padding to remove edge effects.
+    :param batch_size: Number of patches denoised in parallel.
+    :return: Denoised image (2D numpy array)
+    '''
+    if image.ndim != 2:
+        print("Your image should have only two dimensions. Return none")
+        return None
     image, mean, sd = utils.normalize(image)
     img_patches, pads = utils.image_to_patches(image, patch_size=patch_size, padding=padding)
     denoised_patches = model.predict(x=img_patches[:, :, :, np.newaxis], batch_size=batch_size)

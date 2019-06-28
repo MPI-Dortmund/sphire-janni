@@ -43,6 +43,31 @@ def train(even_path,
 
     print("Start training")
     # Read training even/odd micrographs
+    even_files, odd_files = calc_even_odd(movie_path, even_path, odd_path,recursive=True)
+
+    trained_model = do_train(even_files,
+                             odd_files,
+                             model=model,
+                             learning_rate=learning_rate,
+                             patch_size=patch_size,
+                             batch_size=batch_size,
+                             epochs=epochs,
+                             valid_split = 0.1)
+    trained_model.save_weights(model_out_path)
+    print("Training done. Weights saved to " + model_out_path)
+
+def calc_even_odd(movie_path,even_path,odd_path, recursive=True):
+    '''
+    Calculates averages based on the even/odd frames of the movies in movie_path and save the
+    respective averages in even_path or odd_path.
+    :param movie_path: Path to movie files. Supported are .mrc, .mrcs, .tiff and .tif.
+    :param even_path: Path where "even averages" will be written.
+    :param odd_path: Path here "odd averages" will be written
+    :param recursive: If true, the movie_path is scanned recurively for movies.
+    :return:
+    '''
+
+    # Read training even/odd micrographs
     even_files = []
     odd_files = []
     for (dirpath, dirnames, filenames) in os.walk(even_path):
@@ -77,15 +102,14 @@ def train(even_path,
                     even, odd = utils.create_image_pair(path)
                     out_even_path = os.path.join(even_path, filename)
                     out_odd_path = os.path.join(odd_path, filename)
-                    if path.endswith(("mrcs","mrc")):
+                    if path.endswith(("mrcs", "mrc")):
                         with mrcfile.new(out_even_path, overwrite=True) as mrc:
                             mrc.set_data(even)
-
 
                         with mrcfile.new(out_odd_path, overwrite=True) as mrc:
                             mrc.set_data(odd)
 
-                    elif path.endswith((".tif",".tiff")):
+                    elif path.endswith((".tif", ".tiff")):
                         tifffile.imwrite(out_even_path, even)
                         tifffile.imwrite(out_odd_path, odd)
 
@@ -93,20 +117,25 @@ def train(even_path,
                     odd_files.append(out_odd_path)
                     filenames_even.append(filename)
                     filenames_odd.append(filename)
-
-    trained_model = do_train(even_files,
-                             odd_files,
-                             model=model,
-                             learning_rate=learning_rate,
-                             patch_size=patch_size,
-                             batch_size=batch_size,
-                             epochs=epochs,
-                             valid_split = 0.1)
-    trained_model.save_weights(model_out_path)
-    print("Training done. Weights saved to " + model_out_path)
+        if recursive == False:
+            break
+    return even_files, odd_files
 
 
-def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50, patch_size=(1024,1024), batch_size=4, valid_split = 0.1):
+def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50, patch_size=(1024,1024), callbacks=[], batch_size=4, valid_split = 0.1):
+    '''
+    Training noise2noise model.
+    :param even_files: List with paths to averages based on the even frames
+    :param odd_files: List with paths to averages based on the odd frames
+    :param model: Model indentifier. Right now only "unet" is supported.
+    :param learning_rate: Learning rate used during training.
+    :param epochs: Number of epochs to train the network
+    :param patch_size: Patch size in pixel. The network is trained on random patches of the images.
+    :param callbacks: Optional callbacks during training. See Keras callbacks for more information.
+    :param batch_size: Mini-batch size used during training
+    :param valid_split: training-validion split.
+    :return: Trained keras model
+    '''
     train_valid_split = int(valid_split * len(even_files))
     train_even_files = even_files[train_valid_split:]
     valid_even_files = even_files[:train_valid_split]
@@ -125,17 +154,6 @@ def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50,
                                                patch_size=patch_size,
                                                batch_size=batch_size)
 
-    '''
-    model_checkoint = ModelCheckpoint(
-        model_out_path,
-                monitor="val_loss",
-                verbose=1,
-                save_best_only=True,
-                save_weights_only=False,
-                mode="min",
-                period=1,
-            )
-    '''
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
     opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
@@ -144,7 +162,7 @@ def do_train(even_files,odd_files, model="unet", learning_rate=0.001, epochs=50,
     model.fit_generator(generator=train_gen,
                         validation_data=valid_gen,
                         epochs=epochs,
-                        callbacks=None)
+                        callbacks=callbacks)
     return model
 
 
