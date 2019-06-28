@@ -161,7 +161,7 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
                 path = os.path.join(dirpath, filename)
 
                 if filename not in filenames_even and filename not in filenames_odd:
-                    print("Create even/odd micrograph for:", path)
+                    print("Create even/odd average for:", path)
                     even, odd = utils.create_image_pair(path)
                     out_even_path = os.path.join(even_path, filename)
                     out_odd_path = os.path.join(odd_path, filename)
