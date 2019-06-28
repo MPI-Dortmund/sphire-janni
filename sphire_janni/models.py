@@ -5,6 +5,7 @@ Copyright (c) 2019 Max Planck Institute of Molecular Physiology
 
 Author: Thorsten Wagner (thorsten.wagner@mpi-dortmund.mpg.de)
 Author: Luca Lusnig (luca.lusnig@mpi-dortmund.mpg.de)
+Author: Fabian Schoenfeld (fabian.schoenfeld@mpi-dortmund.mpg.de)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
