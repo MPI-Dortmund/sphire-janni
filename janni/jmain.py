@@ -90,7 +90,7 @@ def _main_():
         model_path = args.model_path
         from . import predict
 
-        predict.predict_dir(
+        predict.predict(
             input_path=input_path,
             output_path=output_path,
             model_path=model_path,
