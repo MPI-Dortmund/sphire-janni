@@ -162,6 +162,11 @@ def read_image(path):
 
 
 def is_movie(path):
+    '''
+    Checks if file is movie or not
+    :param path: Path to file
+    :return: True if movie.
+    '''
     if path.endswith((".tif", ".tiff")):
         tif = tifffile.TiffFile(path)
         return len(tif.pages) > 1
