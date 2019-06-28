@@ -71,7 +71,7 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
     :param even_path: Path where "even averages" will be written.
     :param odd_path: Path here "odd averages" will be written
     :param recursive: If true, the movie_path is scanned recurively for movies.
-    :return:
+    :return: Two lists with even filepaths and odd filepaths.
     """
 
     # Read training even/odd micrographs
