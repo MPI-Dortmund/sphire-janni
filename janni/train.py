@@ -46,7 +46,7 @@ def train(
     batch_size=4,
 ):
     '''
-    Does the complete noise2noise training.
+    Does the complete noise2noise training and writes the model file to disk.
     :param even_path: Path where "even averages" will be written.
     :param odd_path: Path here "odd averages" will be written
     :param model_out_path: Filepath where model will be written.
