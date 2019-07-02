@@ -251,4 +251,4 @@ def train_pairs(
         workers=4,
         use_multiprocessing=True
     )
-    return model, history
+    return model

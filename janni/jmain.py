@@ -36,7 +36,7 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 DEFAULT_BATCH_SIZE = 4
-DEFAULT_OVERLAP = 24
+DEFAULT_PADDING = 24
 
 parser = argparse.ArgumentParser(
     description="Just another noise to noise implementation", add_help=True
@@ -95,7 +95,7 @@ def _main_():
         model_path = args.model_path
         from . import predict
         batch_size = DEFAULT_BATCH_SIZE
-        overlap = DEFAULT_OVERLAP
+        padding = DEFAULT_PADDING
 
         with h5py.File(model_path, mode="r") as f:
             try:
@@ -108,11 +108,11 @@ def _main_():
             config = read_config(args.config_path)
             model = config["model"]["architecture"]
             patch_size = (config["model"]["patch_size"], config["model"]["patch_size"])
-            overlap = config["model"]["overlap"]
+            padding = config["model"]["overlap"]
             batch_size = config["train"]["batch_size"]
 
         if args.overlap is not None:
-            overlap = int(args.overlap)
+            padding = int(args.overlap)
 
         if args.batch_size is not None:
             batch_size = int(args.batch_size)
@@ -124,7 +124,7 @@ def _main_():
             model_path=model_path,
             model= model,
             patch_size=patch_size,
-            padding=overlap,
+            padding=padding,
             batch_size=batch_size,
         )
 
