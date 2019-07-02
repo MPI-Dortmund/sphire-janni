@@ -97,12 +97,16 @@ def _main_():
         batch_size = DEFAULT_BATCH_SIZE
         padding = DEFAULT_PADDING
 
+        print("Read model " + model_path)
         with h5py.File(model_path, mode="r") as f:
             try:
-                model = f["model"]
-                patch_size = f["patch_size"]
+                import numpy as np
+                model = str(np.array((f["model_name"])))
+                patch_size = tuple(f["patch_size"])
+                print("Model:",model)
+                print("Patch size:", patch_size)
             except KeyError:
-                None
+                print("Necessary informat!")
 
         if args.config_path is not None:
             config = read_config(args.config_path)

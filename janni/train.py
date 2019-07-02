@@ -33,6 +33,7 @@ import os
 from . import utils
 import mrcfile
 import tifffile
+import numpy as np
 
 def train(
     even_path,
@@ -61,6 +62,7 @@ def train(
 
     print("Start training")
     # Read training even/odd micrographs
+    print("Train model", type(model))
     trained_model = train_movie_dir(
         even_path=even_path,
         odd_path=odd_path,
@@ -71,15 +73,15 @@ def train(
         patch_size=patch_size,
         batch_size=batch_size,
         )
+    print("After Train model", type(model))
     trained_model.save_weights(model_out_path)
-
-
     import h5py
     with h5py.File(model_out_path, mode='r+') as f:
-        f["model"] = model
+        f["model_name"] = np.array((model), dtype=h5py.special_dtype(vlen=str))
         f["patch_size"] = patch_size
 
     print("Training done. Weights saved to " + model_out_path)
+
     return trained_model
 
 def train_movie_dir(
