@@ -31,7 +31,7 @@ setup(
     version=find_version("janni", "__init__.py"),
     python_requires='>3.4.0',
     packages=['janni'],
-    url='',
+    url='https://github.com/MPI-Dortmund/sphire-janni',
     license='MIT',
     author='Thorsten Wagner',
     install_requires=[
