@@ -22,10 +22,10 @@ def get_tensorflow(*file_paths):
     version_file = read(*file_paths)
     if "dev0"in version_file:
         print("Use tensorflow CPU")
-        return "tensorflow == 1.10.1"
+        return "tensorflow == 1.12.3"
     else:
         print("Use tensorflow GPU")
-        return "tensorflow-gpu == 1.10.1"
+        return "tensorflow-gpu == 1.12.3"
 setup(
     name='janni',
     version=find_version("janni", "__init__.py"),
@@ -37,9 +37,10 @@ setup(
     install_requires=[
         "mrcfile >= 1.0.0",
         "Keras >= 2.2.4",
-        "numpy <= 1.14.5",
+        "numpy == 1.15.4",
         "h5py >= 2.5.0",
-        "imagecodecs-lite",
+        "cython",
+        "imagecodecs-lite==2019.2.22",
         "tifffile",
         get_tensorflow("janni", "__init__.py"),
     ],
