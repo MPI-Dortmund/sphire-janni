@@ -170,14 +170,17 @@ def normalize(img):
     mean = np.mean(img)
     sd = np.std(img)
     img = (img - mean) / sd
-    img[img < -3] = -3
-    img[img > 3] = 3
+    img = np.clip(img, -3, 3)
     return img, mean, sd
 
 
 def read_image(path):
     if path.endswith((".tif", ".tiff")):
-        return tifffile.memmap(path,mode="r")
+        try:
+            img = tifffile.memmap(path,mode="r")
+        except ValueError:
+            img = tifffile.imread(path)
+        return img
     elif path.endswith(("mrc", "mrcs")):
         with mrcfile.mmap(path, permissive=True) as mrc:
             return mrc.data
