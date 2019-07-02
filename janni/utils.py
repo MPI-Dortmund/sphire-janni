@@ -177,7 +177,7 @@ def normalize(img):
 
 def read_image(path):
     if path.endswith((".tif", ".tiff")):
-        return tifffile.imread(path)
+        return tifffile.memmap(path,mode="r")
     elif path.endswith(("mrc", "mrcs")):
         with mrcfile.mmap(path, permissive=True) as mrc:
             return mrc.data

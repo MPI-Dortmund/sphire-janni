@@ -155,33 +155,34 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
 
     filenames_even = list(map(os.path.basename, even_files))
     filenames_odd = list(map(os.path.basename, odd_files))
-    for (dirpath, dirnames, filenames) in os.walk(movie_path):
-        for filename in filenames:
-            if filename.endswith(utils.SUPPORTED_FILES):
-                path = os.path.join(dirpath, filename)
+    if movie_path:
+        for (dirpath, dirnames, filenames) in os.walk(movie_path):
+            for filename in filenames:
+                if filename.endswith(utils.SUPPORTED_FILES):
+                    path = os.path.join(dirpath, filename)
 
-                if filename not in filenames_even and filename not in filenames_odd:
-                    print("Create even/odd average for:", path)
-                    even, odd = utils.create_image_pair(path)
-                    out_even_path = os.path.join(even_path, filename)
-                    out_odd_path = os.path.join(odd_path, filename)
-                    if path.endswith(("mrcs", "mrc")):
-                        with mrcfile.new(out_even_path, overwrite=True) as mrc:
-                            mrc.set_data(even)
+                    if filename not in filenames_even and filename not in filenames_odd:
+                        print("Create even/odd average for:", path)
+                        even, odd = utils.create_image_pair(path)
+                        out_even_path = os.path.join(even_path, filename)
+                        out_odd_path = os.path.join(odd_path, filename)
+                        if path.endswith(("mrcs", "mrc")):
+                            with mrcfile.new(out_even_path, overwrite=True) as mrc:
+                                mrc.set_data(even)
 
-                        with mrcfile.new(out_odd_path, overwrite=True) as mrc:
-                            mrc.set_data(odd)
+                            with mrcfile.new(out_odd_path, overwrite=True) as mrc:
+                                mrc.set_data(odd)
 
-                    elif path.endswith((".tif", ".tiff")):
-                        tifffile.imwrite(out_even_path, even)
-                        tifffile.imwrite(out_odd_path, odd)
+                        elif path.endswith((".tif", ".tiff")):
+                            tifffile.imwrite(out_even_path, even)
+                            tifffile.imwrite(out_odd_path, odd)
 
-                    even_files.append(out_even_path)
-                    odd_files.append(out_odd_path)
-                    filenames_even.append(filename)
-                    filenames_odd.append(filename)
-        if recursive == False:
-            break
+                        even_files.append(out_even_path)
+                        odd_files.append(out_odd_path)
+                        filenames_even.append(filename)
+                        filenames_odd.append(filename)
+            if recursive == False:
+                break
     return even_files, odd_files
 
 
@@ -195,6 +196,7 @@ def train_pairs(
     callbacks=[],
     batch_size=4,
     valid_split=0.1,
+    loss="mse"
 ):
     """
     Training noise2noise model.
@@ -233,12 +235,14 @@ def train_pairs(
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
     opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
-    model.compile(optimizer=opt, loss="mse")
+    model.compile(optimizer=opt, loss=loss)
 
-    model.fit_generator(
+    history = model.fit_generator(
         generator=train_gen,
         validation_data=valid_gen,
         epochs=epochs,
         callbacks=callbacks,
+        workers=4,
+        use_multiprocessing=True
     )
-    return model
+    return model, history
