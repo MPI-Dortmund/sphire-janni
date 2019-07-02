@@ -72,8 +72,14 @@ def train(
         batch_size=batch_size,
         )
     trained_model.save_weights(model_out_path)
-    print("Training done. Weights saved to " + model_out_path)
 
+
+    import h5py
+    with h5py.File(model_out_path, mode='r+') as f:
+        f["model"] = model
+        f["patch_size"] = patch_size
+
+    print("Training done. Weights saved to " + model_out_path)
     return trained_model
 
 def train_movie_dir(
