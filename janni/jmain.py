@@ -30,11 +30,13 @@ import argparse
 import sys
 import json
 import os
-
+import h5py
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
+DEFAULT_BATCH_SIZE = 4
+DEFAULT_OVERLAP = 24
 
 parser = argparse.ArgumentParser(
     description="Just another noise to noise implementation", add_help=True
@@ -45,6 +47,7 @@ parser_train = subparsers.add_parser("train", help="train help")
 parser_train.add_argument("config_path", help="Path to config.json")
 parser_train.add_argument("-g", "--gpu", type=int, default=-1, help="GPU ID to run on")
 
+
 parser_predict = subparsers.add_parser("predict", help="predict help")
 parser_predict.add_argument(
     "input_path", help="Directory / file path with images to denoise"
@@ -53,7 +56,9 @@ parser_predict.add_argument(
     "output_path", help="Directory / file path to write denoised images"
 )
 parser_predict.add_argument("model_path", help="File path to trained model")
-parser_predict.add_argument("config_path", help="File path to config.json")
+parser_predict.add_argument("-c", "--config_path", help="File path to config.json")
+parser_predict.add_argument("-ol", "--overlap", help="Overlapping in pixels")
+parser_predict.add_argument("-bs", "--batch_size", help="Number of patches predicted in parallel")
 parser_predict.add_argument(
     "-g", "--gpu", type=int, default=-1, help="GPU ID to run on"
 )
@@ -84,20 +89,43 @@ def _main_():
         )
 
     if "predict" in sys.argv[1]:
-        config = read_config(args.config_path)
+
         input_path = args.input_path
         output_path = args.output_path
         model_path = args.model_path
         from . import predict
+        batch_size = DEFAULT_BATCH_SIZE
+        overlap = DEFAULT_OVERLAP
+
+        with h5py.File(model_path, mode="r") as f:
+            try:
+                model = f["model"]
+                patch_size = f["patch_size"]
+            except KeyError:
+                None
+
+        if args.config_path is not None:
+            config = read_config(args.config_path)
+            model = config["model"]["architecture"]
+            patch_size = (config["model"]["patch_size"], config["model"]["patch_size"])
+            overlap = config["model"]["overlap"]
+            batch_size = config["train"]["batch_size"]
+
+        if args.overlap is not None:
+            overlap = int(args.overlap)
+
+        if args.batch_size is not None:
+            batch_size = int(args.batch_size)
+
 
         predict.predict(
             input_path=input_path,
             output_path=output_path,
             model_path=model_path,
-            model=config["model"]["architecture"],
-            patch_size=(config["model"]["patch_size"], config["model"]["patch_size"]),
-            padding=config["model"]["overlap"],
-            batch_size=config["train"]["batch_size"],
+            model= model,
+            patch_size=patch_size,
+            padding=overlap,
+            batch_size=batch_size,
         )
 
 
