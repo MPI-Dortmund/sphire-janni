@@ -165,7 +165,7 @@ def predict_list(
                 elif opath.endswith((".tif", ".tiff")):
                     tifffile.imwrite(opath, denoised)
             else:
-                print("Skip", path)
+                print("Already filtered:", path , "Skip!")
             denoise_image_paths.append(opath)
 
     return denoise_image_paths
