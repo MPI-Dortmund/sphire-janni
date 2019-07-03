@@ -97,7 +97,7 @@ def predict_dir(
     return denoise_image_paths
 
 def predict_list(
-    file_paths,
+    image_paths,
     output_path,
     model,
     patch_size=(1024, 1024),
@@ -106,7 +106,7 @@ def predict_list(
 ):
     """
     Denoises images / movies
-    :param file_paths: List of files to filter
+    :param image_paths: List of images to filter
     :param output_path: Folder where results should be written.
     :param model: Trained model
     :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
@@ -115,7 +115,7 @@ def predict_list(
     :return: List of paths to denoised images
     """
     denoise_image_paths = []
-    for path in file_paths:
+    for path in image_paths:
         if path.endswith(utils.SUPPORTED_FILES):
             try:
                 os.makedirs(output_path)
@@ -165,7 +165,7 @@ def predict_list(
                 elif opath.endswith((".tif", ".tiff")):
                     tifffile.imwrite(opath, denoised)
             else:
-                print("Already filtered:", path , "Skip!")
+                print("Already filtered:", path, "Skip!")
             denoise_image_paths.append(opath)
 
     return denoise_image_paths
