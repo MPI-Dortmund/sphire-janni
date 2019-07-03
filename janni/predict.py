@@ -33,6 +33,7 @@ import sys
 import os
 import mrcfile
 import tifffile
+import pathlib
 
 def predict(
     input_path,
@@ -77,50 +78,87 @@ def predict_dir(
     :param batch_size: Number of patches denoised in parallel.
     :return: Denoised image (2D numpy array)
     """
-
+    list_files = []
     for (dirpath, dirnames, filenames) in os.walk(input_path):
         for filename in filenames:
             if filename.endswith(utils.SUPPORTED_FILES):
                 path = os.path.join(dirpath, filename)
-                if utils.is_movie(path):
-                    even, odd = utils.create_image_pair(path)
-                    denoised_even = predict_np(
-                        model,
-                        even,
-                        patch_size=patch_size,
-                        padding=padding,
-                        batch_size=batch_size,
-                    )
-                    denoised_odd = predict_np(
-                        model,
-                        odd,
-                        patch_size=patch_size,
-                        padding=padding,
-                        batch_size=batch_size,
-                    )
-                    denoised = denoised_even + denoised_odd
-                else:
-                    img = utils.read_image(path)
-                    img = img.squeeze()
-                    denoised = predict_np(
-                        model,
-                        image=img,
-                        patch_size=patch_size,
-                        padding=padding,
-                        batch_size=batch_size,
-                    )
-                # Write result to disk
-                try:
-                    os.makedirs(output_path)
-                except FileExistsError:
-                    pass
-                opath = os.path.join(output_path, filename)
-                print("Write denoised image", opath)
-                if opath.endswith((".mrc", ".mrcs")):
-                    with mrcfile.new(opath, overwrite=True) as mrc:
-                        mrc.set_data(denoised)
-                elif opath.endswith((".tif", ".tiff")):
-                    tifffile.imwrite(opath, denoised)
+                list_files.append(path)
+
+    predict_list(
+        list_files,
+        output_path,
+        model,
+        patch_size=patch_size,
+        padding=padding,
+        batch_size=batch_size,
+    )
+
+def predict_list(
+    file_paths,
+    output_path,
+    model,
+    patch_size=(1024, 1024),
+    padding=15,
+    batch_size=4,
+):
+    """
+    Denoises images / movies
+    :param file_paths: List of files to filter
+    :param output_path: Folder where results should be written.
+    :param model: Trained model
+    :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
+    :param padding: Padding to remove edge effects.
+    :param batch_size: Number of patches denoised in parallel.
+    :return: Denoised image (2D numpy array)
+    """
+
+    for path in file_paths:
+        if path.endswith(utils.SUPPORTED_FILES):
+            if utils.is_movie(path):
+                even, odd = utils.create_image_pair(path)
+                denoised_even = predict_np(
+                    model,
+                    even,
+                    patch_size=patch_size,
+                    padding=padding,
+                    batch_size=batch_size,
+                )
+                denoised_odd = predict_np(
+                    model,
+                    odd,
+                    patch_size=patch_size,
+                    padding=padding,
+                    batch_size=batch_size,
+                )
+                denoised = denoised_even + denoised_odd
+            else:
+                img = utils.read_image(path)
+                img = img.squeeze()
+                denoised = predict_np(
+                    model,
+                    image=img,
+                    patch_size=patch_size,
+                    padding=padding,
+                    batch_size=batch_size,
+                )
+            # Write result to disk
+            try:
+                os.makedirs(output_path)
+            except FileExistsError:
+                pass
+            pos_path = pathlib.PurePath(path)
+            file_outpath = os.path.join(output_path, pos_path.parent.name)
+            if not os.path.exists(file_outpath):
+                os.makedirs(file_outpath)
+
+            opath = os.path.join(file_outpath, pos_path.name)
+            print("Write denoised image in", opath)
+            if opath.endswith((".mrc", ".mrcs")):
+                with mrcfile.new(opath, overwrite=True) as mrc:
+                    mrc.set_data(denoised)
+            elif opath.endswith((".tif", ".tiff")):
+                tifffile.imwrite(opath, denoised)
 
 
 def predict_np(model, image, patch_size=(1024, 1024), padding=15, batch_size=4):
