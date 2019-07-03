@@ -76,7 +76,7 @@ def predict_dir(
     :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
     :param padding: Padding to remove edge effects.
     :param batch_size: Number of patches denoised in parallel.
-    :return: Denoised image (2D numpy array)
+    :return: List of paths to denoised images
     """
     list_files = []
     for (dirpath, dirnames, filenames) in os.walk(input_path):
@@ -85,7 +85,7 @@ def predict_dir(
                 path = os.path.join(dirpath, filename)
                 list_files.append(path)
 
-    predict_list(
+    denoise_image_paths = predict_list(
         list_files,
         output_path,
         model,
@@ -93,6 +93,8 @@ def predict_dir(
         padding=padding,
         batch_size=batch_size,
     )
+
+    return denoise_image_paths
 
 def predict_list(
     file_paths,
@@ -110,9 +112,9 @@ def predict_list(
     :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
     :param padding: Padding to remove edge effects.
     :param batch_size: Number of patches denoised in parallel.
-    :return: Denoised image (2D numpy array)
+    :return: List of paths to denoised images
     """
-
+    denoise_image_paths = []
     for path in file_paths:
         if path.endswith(utils.SUPPORTED_FILES):
             if utils.is_movie(path):
@@ -159,6 +161,10 @@ def predict_list(
                     mrc.set_data(denoised)
             elif opath.endswith((".tif", ".tiff")):
                 tifffile.imwrite(opath, denoised)
+
+            denoise_image_paths.append(opath)
+
+    return denoise_image_paths
 
 
 def predict_np(model, image, patch_size=(1024, 1024), padding=15, batch_size=4):
