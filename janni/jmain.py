@@ -56,7 +56,7 @@ parser_predict.add_argument(
     "output_path", help="Directory / file path to write denoised images"
 )
 parser_predict.add_argument("model_path", help="File path to trained model")
-parser_predict.add_argument("-ol", "--overlap", help="Overlapping in pixels")
+parser_predict.add_argument("-ol", "--overlap", help="The patches have to overlap to remove artifacts. This is the amount of overlap in pixel.")
 parser_predict.add_argument("-bs", "--batch_size", help="Number of patches predicted in parallel")
 parser_predict.add_argument(
     "-g", "--gpu", type=int, default=-1, help="GPU ID to run on"
