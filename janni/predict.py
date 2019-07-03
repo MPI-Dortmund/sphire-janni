@@ -117,34 +117,6 @@ def predict_list(
     denoise_image_paths = []
     for path in file_paths:
         if path.endswith(utils.SUPPORTED_FILES):
-            if utils.is_movie(path):
-                even, odd = utils.create_image_pair(path)
-                denoised_even = predict_np(
-                    model,
-                    even,
-                    patch_size=patch_size,
-                    padding=padding,
-                    batch_size=batch_size,
-                )
-                denoised_odd = predict_np(
-                    model,
-                    odd,
-                    patch_size=patch_size,
-                    padding=padding,
-                    batch_size=batch_size,
-                )
-                denoised = denoised_even + denoised_odd
-            else:
-                img = utils.read_image(path)
-                img = img.squeeze()
-                denoised = predict_np(
-                    model,
-                    image=img,
-                    patch_size=patch_size,
-                    padding=padding,
-                    batch_size=batch_size,
-                )
-            # Write result to disk
             try:
                 os.makedirs(output_path)
             except FileExistsError:
@@ -155,13 +127,45 @@ def predict_list(
                 os.makedirs(file_outpath)
 
             opath = os.path.join(file_outpath, pos_path.name)
-            print("Write denoised image in", opath)
-            if opath.endswith((".mrc", ".mrcs")):
-                with mrcfile.new(opath, overwrite=True) as mrc:
-                    mrc.set_data(denoised)
-            elif opath.endswith((".tif", ".tiff")):
-                tifffile.imwrite(opath, denoised)
 
+            if not os.path.exists(opath):
+                if utils.is_movie(path):
+                    even, odd = utils.create_image_pair(path)
+                    denoised_even = predict_np(
+                        model,
+                        even,
+                        patch_size=patch_size,
+                        padding=padding,
+                        batch_size=batch_size,
+                    )
+                    denoised_odd = predict_np(
+                        model,
+                        odd,
+                        patch_size=patch_size,
+                        padding=padding,
+                        batch_size=batch_size,
+                    )
+                    denoised = denoised_even + denoised_odd
+                else:
+                    img = utils.read_image(path)
+                    img = img.squeeze()
+                    denoised = predict_np(
+                        model,
+                        image=img,
+                        patch_size=patch_size,
+                        padding=padding,
+                        batch_size=batch_size,
+                    )
+                # Write result to disk
+
+                print("Write denoised image in", opath)
+                if opath.endswith((".mrc", ".mrcs")):
+                    with mrcfile.new(opath, overwrite=True) as mrc:
+                        mrc.set_data(denoised)
+                elif opath.endswith((".tif", ".tiff")):
+                    tifffile.imwrite(opath, denoised)
+            else:
+                print("Skip", path)
             denoise_image_paths.append(opath)
 
     return denoise_image_paths
