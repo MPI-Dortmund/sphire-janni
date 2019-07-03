@@ -56,7 +56,6 @@ parser_predict.add_argument(
     "output_path", help="Directory / file path to write denoised images"
 )
 parser_predict.add_argument("model_path", help="File path to trained model")
-parser_predict.add_argument("-c", "--config_path", help="File path to config.json")
 parser_predict.add_argument("-ol", "--overlap", help="Overlapping in pixels")
 parser_predict.add_argument("-bs", "--batch_size", help="Number of patches predicted in parallel")
 parser_predict.add_argument(
@@ -104,19 +103,12 @@ def _main_():
                 patch_size = tuple(f["patch_size"])
             except KeyError:
                 pass
-        if args.config_path is not None:
-            config = read_config(args.config_path)
-            model = config["model"]["architecture"]
-            patch_size = (config["model"]["patch_size"], config["model"]["patch_size"])
-            padding = config["model"]["overlap"]
-            batch_size = config["train"]["batch_size"]
 
         if args.overlap is not None:
             padding = int(args.overlap)
 
         if args.batch_size is not None:
             batch_size = int(args.batch_size)
-
 
         predict.predict(
             input_path=input_path,
