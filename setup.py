@@ -19,14 +19,6 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
-def get_tensorflow(*file_paths):
-    version_file = read(*file_paths)
-    if "dev0"in version_file:
-        print("Use tensorflow CPU")
-        return "tensorflow == 1.12.3"
-    else:
-        print("Use tensorflow GPU")
-        return "tensorflow-gpu == 1.12.3"
 setup(
     name='janni',
     version=find_version("janni", "__init__.py"),
@@ -47,8 +39,7 @@ setup(
         "h5py >= 2.5.0",
         "Cython",
         "imagecodecs-lite==2019.2.22",
-        "tifffile",
-        #get_tensorflow("janni", "__init__.py"),
+        "tifffile"
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',
     description='noise 2 noise for cryo em data',
