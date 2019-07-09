@@ -2,6 +2,7 @@ from setuptools import setup
 import os
 import re
 import codecs
+import janni
 # Create new package with python setup.py sdist
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -35,6 +36,10 @@ setup(
     license='MIT',
     author='Thorsten Wagner',
     setup_requires=["Cython"],
+    extras_require={
+        'gpu': ['tensorflow-gpu == 1.12.3'],
+        'cpu': ['tensorflow == 1.12.3']
+    },
     install_requires=[
         "mrcfile >= 1.0.0",
         "Keras >= 2.2.4",
@@ -43,7 +48,7 @@ setup(
         "Cython",
         "imagecodecs-lite==2019.2.22",
         "tifffile",
-        get_tensorflow("janni", "__init__.py"),
+        #get_tensorflow("janni", "__init__.py"),
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',
     description='noise 2 noise for cryo em data',
