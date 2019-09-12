@@ -32,6 +32,7 @@ import json
 import os
 import h5py
 from gooey import Gooey, GooeyParser
+import janni.__init__ as ini
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
@@ -198,7 +199,7 @@ def create_parser(parser):
     parser_train = subparsers.add_parser("train", help="Train JANNI for your dataset.")
     create_train_parser(parser_train)
 
-    parser_predict = subparsers.add_parser("predict", help="Denoise micrographs using a (pre)trained model.")
+    parser_predict = subparsers.add_parser("denoise", help="Denoise micrographs using a (pre)trained model.")
     create_predict_parser(parser_predict)
 
 
@@ -220,7 +221,7 @@ def _main_():
     kwargs = {"terminal_font_family": "monospace", "richtext_controls": True}
     Gooey(
         main,
-        program_name="JANNI",
+        program_name="JANNI " + ini.__version__,
         #image_dir=os.path.join(os.path.abspath(os.path.dirname(__file__)), "../icons"),
         progress_regex=r"^.* \( Progress:\s+(-?\d+) % \)$",
         disable_progress_bar_animation=True,
@@ -275,7 +276,7 @@ def main(args=None):
                 batch_size=config["train"]["batch_size"],
             )
 
-        elif "predict" in sys.argv[1]:
+        elif "denoise" in sys.argv[1]:
 
             input_path = args.input_path
             output_path = args.output_path

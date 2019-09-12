@@ -37,6 +37,7 @@ setup(
         "Keras >= 2.2.4",
         "numpy == 1.14.5",
         "h5py >= 2.5.0",
+        "Pillow >= 6.0.0",
         "Cython",
         "imagecodecs-lite==2019.2.22",
         "tifffile"

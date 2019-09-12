@@ -79,6 +79,7 @@ def predict_dir(
     :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
     :param padding: Padding to remove edge effects.
     :param batch_size: Number of patches denoised in parallel.
+    :param output_resize_to: The denoised image will be downsized to this dimension.
     :return: List of paths to denoised images
     """
     list_files = []
