@@ -43,6 +43,7 @@ def predict(
     patch_size=(1024, 1024),
     padding=15,
     batch_size=4,
+    output_resize_to=None
 ):
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size)
@@ -58,6 +59,7 @@ def predict(
         patch_size=patch_size,
         padding=padding,
         batch_size=batch_size,
+        output_resize_to=output_resize_to,
     )
 
 def predict_dir(
@@ -67,6 +69,7 @@ def predict_dir(
     patch_size=(1024, 1024),
     padding=15,
     batch_size=4,
+    output_resize_to=None
 ):
     """
     Denoises images / movies
@@ -92,6 +95,7 @@ def predict_dir(
         patch_size=patch_size,
         padding=padding,
         batch_size=batch_size,
+        output_resize_to=output_resize_to
     )
 
     return denoise_image_paths
@@ -103,6 +107,7 @@ def predict_list(
     patch_size=(1024, 1024),
     padding=15,
     batch_size=4,
+    output_resize_to=None
 ):
     """
     Denoises images / movies
@@ -112,8 +117,10 @@ def predict_list(
     :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
     :param padding: Padding to remove edge effects.
     :param batch_size: Number of patches denoised in parallel.
+    :param output_resize_to: The denoised image will be downsized to this dimension.
     :return: List of paths to denoised images
     """
+
     denoise_image_paths = []
     for path in image_paths:
         if path.endswith(utils.SUPPORTED_FILES):
@@ -157,6 +164,11 @@ def predict_list(
                         batch_size=batch_size,
                     )
                 # Write result to disk
+
+                if output_resize_to != None:
+                    from PIL import Image
+                    denoised = np.array(Image.fromarray(denoised).resize(
+                        output_resize_to, resample=Image.BILINEAR))
 
                 print("Write denoised image in", opath)
                 if opath.endswith((".mrc", ".mrcs")):
