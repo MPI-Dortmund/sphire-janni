@@ -31,6 +31,7 @@ import sys
 import json
 import os
 import h5py
+from gooey import Gooey, GooeyParser
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
@@ -38,35 +39,195 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_PADDING = 24
 
-parser = argparse.ArgumentParser(
-    description="Just another noise to noise implementation", add_help=True
-)
-subparsers = parser.add_subparsers(help="sub-command help")
+ARGPARSER = None
 
-parser_train = subparsers.add_parser("train", help="train help")
-parser_train.add_argument("config_path", help="Path to config.json")
-parser_train.add_argument("-g", "--gpu", type=int, default=-1, help="GPU ID to run on")
+def create_config_parser(parser):
+    config_required_group = parser.add_argument_group(
+        "Required arguments",
+        "The arguments are required to create a config file for JANNI",
+    )
+
+    config_required_group.add_argument(
+        "--patch_size",
+        default=1024,
+        type=int,
+        help="The image will be denoised in patches. This field defines the patch size..",
+    )
+
+    config_required_group.add_argument(
+        "--movie_dir",
+        help="Path to the directory with the movie files. If an average exists already in even_dir or odd_dir it will be skipped.",
+        widget="DirChooser",
+    )
+
+    config_required_group.add_argument(
+        "--even_dir",
+        help="For each movie in movie_dir, an average based on the even frames is calculated and saved in even_dir.",
+        widget="DirChooser",
+    )
+
+    config_required_group.add_argument(
+        "--odd_dir",
+        help="For each movie in movie_dir, an average based on the odd frames is calculated and saved in odd_dir.",
+        widget="DirChooser",
+    )
+
+    config_required_group.add_argument(
+        "--batch_size",
+        type=int,
+        default=4,
+        help="How many patches are in one mini-batch. If you have memory problems (e.g with cards < 8GB memory), you can try to reduce this value.",
+    )
+
+    config_required_group.add_argument(
+        "--learning_rate",
+        type=float,
+        default=10**-3,
+        help="Learning rate, should not be changed.",
+    )
+
+    config_required_group.add_argument(
+        "--nb_epoch",
+        type=int,
+        default=100,
+        help="Number of epochs to train. Default is 100. More epochs seems to only slightly improve the results.",
+    )
+
+    config_required_group.add_argument(
+        "--saved_weights_name",
+        default="janni_model.h5",
+        help="Path for saving final weights.",
+        widget="FileSaver",
+        gooey_options={
+            "validator": {
+                "test": 'user_input.endswith("h5")',
+                "message": "File has to end with .h5!",
+            },
+            "default_file": "janni_model.h5"
+        },
+    )
 
 
-parser_predict = subparsers.add_parser("predict", help="predict help")
-parser_predict.add_argument(
-    "input_path", help="Directory / file path with images to denoise"
-)
-parser_predict.add_argument(
-    "output_path", help="Directory / file path to write denoised images"
-)
-parser_predict.add_argument("model_path", help="File path to trained model")
-parser_predict.add_argument("-ol", "--overlap", help="The patches have to overlap to remove artifacts. This is the amount of overlap in pixel.")
-parser_predict.add_argument("-bs", "--batch_size", help="Number of patches predicted in parallel")
-parser_predict.add_argument(
-    "-g", "--gpu", type=int, default=-1, help="GPU ID to run on"
-)
+
+def create_train_parser(parser):
+    required_group = parser.add_argument_group(
+        "Required arguments", "These options are mandatory to train JANNI"
+    )
+
+    required_group.add_argument(
+        "config_path",
+        help="Path to config.json",
+        widget="FileChooser",
+        gooey_options={
+            "wildcard": "*.json"
+        }
+    )
+
+    optional_group = parser.add_argument_group(
+        "Optional arguments", "These options are optional to train JANNI"
+    )
+
+    optional_group.add_argument(
+        "-g", "--gpu", type=int, default=-1, help="GPU ID to run on"
+    )
+
+def create_predict_parser(parser):
+    required_group = parser.add_argument_group(
+        "Required arguments", "These options are mandatory to run JANNI"
+    )
+
+    required_group.add_argument(
+        "input_path",
+        help="Directory / file path with images to denoise\n",
+        widget="DirChooser",
+    )
+    required_group.add_argument(
+        "output_path",
+        help="Directory / file path to write denoised images\n",
+        widget="DirChooser",
+    )
+    required_group.add_argument(
+        "model_path",
+        help="File path to trained model",
+        widget="FileChooser",
+        gooey_options={
+            "wildcard": "*.h5"
+        }
+    )
+
+    optional_group = parser.add_argument_group(
+        "Optional arguments", "These options are mandatory to run JANNI"
+    )
+    optional_group.add_argument(
+        "-ol",
+        "--overlap",
+        help="The patches have to overlap to remove artifacts. This is the amount of overlap in pixel.\n",
+        default=DEFAULT_PADDING,
+    )
+    optional_group.add_argument(
+        "-bs",
+        "--batch_size",
+        help="Number of patches predicted in parallel\n",
+        default=DEFAULT_BATCH_SIZE,
+    )
+    optional_group.add_argument(
+        "-g", "--gpu", type=int, default=-1, help="GPU ID to run on"
+    )
+
+def create_parser(parser):
+
+    subparsers = parser.add_subparsers(help="sub-command help")
+
+    parser_config= subparsers.add_parser("config", help="Create the configuration file for JANNI")
+    create_config_parser(parser_config)
+
+    parser_train = subparsers.add_parser("train", help="Train JANNI for your dataset.")
+    create_train_parser(parser_train)
+
+
+    parser_predict = subparsers.add_parser("predict", help="Denoise micrographs using a (pre)trained model.")
+    create_predict_parser(parser_predict)
+
+
+
+def get_parser():
+    parser = GooeyParser(description="Just another noise to noise implementation")
+    create_parser(parser)
+    return parser
 
 
 def _main_():
-    args = parser.parse_args()
+    global ARGPARSER
+    import sys
 
-    if args.gpu != -1:
+    if len(sys.argv) >= 2:
+        if not "--ignore-gooey" in sys.argv:
+            sys.argv.append("--ignore-gooey")
+
+    kwargs = {"terminal_font_family": "monospace", "richtext_controls": True}
+    Gooey(
+        main,
+        program_name="JANNI",
+        #image_dir=os.path.join(os.path.abspath(os.path.dirname(__file__)), "../icons"),
+        progress_regex=r"^.* \( Progress:\s+(-?\d+) % \)$",
+        disable_progress_bar_animation=True,
+        tabbed_groups=True,
+        **kwargs
+    )()
+
+
+def main(args=None):
+
+    if args is None:
+        parser = get_parser()
+        args = parser.parse_args()
+
+    if isinstance(args.gpu, list):
+        if len(args.gpu) == 1:
+            if args.gpu[0] != "-1":
+                str_gpus = args.gpu[0].strip().split(" ")
+                os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str_gpus)
+    elif args.gpu != -1:
         str_gpus = str(args.gpu)
         os.environ["CUDA_VISIBLE_DEVICES"] = str_gpus
 
@@ -93,16 +254,19 @@ def _main_():
         output_path = args.output_path
         model_path = args.model_path
         from . import predict
+
         batch_size = DEFAULT_BATCH_SIZE
         padding = DEFAULT_PADDING
 
         with h5py.File(model_path, mode="r") as f:
             try:
                 import numpy as np
+
                 model = str(np.array((f["model_name"])))
                 patch_size = tuple(f["patch_size"])
             except KeyError:
-                pass
+                print("Error on loading model", model_path)
+                sys.exit(0)
 
         if args.overlap is not None:
             padding = int(args.overlap)
@@ -114,7 +278,7 @@ def _main_():
             input_path=input_path,
             output_path=output_path,
             model_path=model_path,
-            model= model,
+            model=model,
             patch_size=patch_size,
             padding=padding,
             batch_size=batch_size,

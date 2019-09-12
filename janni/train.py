@@ -159,36 +159,43 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
     except FileExistsError:
         pass
 
+    movies_to_split = []
     filenames_even = list(map(os.path.basename, even_files))
     filenames_odd = list(map(os.path.basename, odd_files))
     if movie_path:
         for (dirpath, dirnames, filenames) in os.walk(movie_path):
             for filename in filenames:
                 if filename.endswith(utils.SUPPORTED_FILES):
-                    path = os.path.join(dirpath, filename)
-
                     if filename not in filenames_even and filename not in filenames_odd:
-                        print("Create even/odd average for:", path)
-                        even, odd = utils.create_image_pair(path)
-                        out_even_path = os.path.join(even_path, filename)
-                        out_odd_path = os.path.join(odd_path, filename)
-                        if path.endswith(("mrcs", "mrc")):
-                            with mrcfile.new(out_even_path, overwrite=True) as mrc:
-                                mrc.set_data(even)
+                        path = os.path.join(dirpath, filename)
+                        movies_to_split.append((path,filename))
 
-                            with mrcfile.new(out_odd_path, overwrite=True) as mrc:
-                                mrc.set_data(odd)
-
-                        elif path.endswith((".tif", ".tiff")):
-                            tifffile.imwrite(out_even_path, even)
-                            tifffile.imwrite(out_odd_path, odd)
-
-                        even_files.append(out_even_path)
-                        odd_files.append(out_odd_path)
-                        filenames_even.append(filename)
-                        filenames_odd.append(filename)
             if recursive == False:
                 break
+
+    for tuble_index, movie_tuble in enumerate(movies_to_split):
+        path, filename = movie_tuble
+        print("Create even/odd average for:", path, "( Progress: ",int(100*tuble_index/len(movies_to_split)),"% )")
+        even, odd = utils.create_image_pair(path)
+        out_even_path = os.path.join(even_path, filename)
+        out_odd_path = os.path.join(odd_path, filename)
+        if path.endswith(("mrcs", "mrc")):
+            with mrcfile.new(out_even_path, overwrite=True) as mrc:
+                mrc.set_data(even)
+
+            with mrcfile.new(out_odd_path, overwrite=True) as mrc:
+                mrc.set_data(odd)
+
+        elif path.endswith((".tif", ".tiff")):
+            tifffile.imwrite(out_even_path, even)
+            tifffile.imwrite(out_odd_path, odd)
+
+        even_files.append(out_even_path)
+        odd_files.append(out_odd_path)
+        filenames_even.append(filename)
+        filenames_odd.append(filename)
+
+    print("Reset progress bar: ( Progress: -1 % )")
     return even_files, odd_files
 
 

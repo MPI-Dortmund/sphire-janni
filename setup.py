@@ -29,13 +29,13 @@ setup(
     author='Thorsten Wagner',
     setup_requires=["Cython"],
     extras_require={
-        'gpu': ['tensorflow-gpu == 1.12.3'],
-        'cpu': ['tensorflow == 1.12.3']
+        'gpu': ['tensorflow-gpu == 1.10.1'],
+        'cpu': ['tensorflow == 1.10.1']
     },
     install_requires=[
         "mrcfile >= 1.0.0",
         "Keras >= 2.2.4",
-        "numpy == 1.15.4",
+        "numpy == 1.14.5",
         "h5py >= 2.5.0",
         "Cython",
         "imagecodecs-lite==2019.2.22",
