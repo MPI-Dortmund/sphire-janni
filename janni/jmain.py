@@ -48,6 +48,20 @@ def create_config_parser(parser):
     )
 
     config_required_group.add_argument(
+        "config_out_path",
+        default="config_janni.json",
+        help="Path where you want to write the config file.",
+        widget="FileSaver",
+        gooey_options={
+            "validator": {
+                "test": 'user_input.endswith("json")',
+                "message": "File has to end with .json!",
+            },
+            "default_file": "config_janni.json"
+        },
+    )
+
+    config_required_group.add_argument(
         "--patch_size",
         default=1024,
         type=int,
@@ -184,7 +198,6 @@ def create_parser(parser):
     parser_train = subparsers.add_parser("train", help="Train JANNI for your dataset.")
     create_train_parser(parser_train)
 
-
     parser_predict = subparsers.add_parser("predict", help="Denoise micrographs using a (pre)trained model.")
     create_predict_parser(parser_predict)
 
@@ -222,68 +235,110 @@ def main(args=None):
         parser = get_parser()
         args = parser.parse_args()
 
-    if isinstance(args.gpu, list):
-        if len(args.gpu) == 1:
-            if args.gpu[0] != "-1":
-                str_gpus = args.gpu[0].strip().split(" ")
-                os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str_gpus)
-    elif args.gpu != -1:
-        str_gpus = str(args.gpu)
-        os.environ["CUDA_VISIBLE_DEVICES"] = str_gpus
 
-    if "train" in sys.argv[1]:
-        config = read_config(args.config_path)
 
-        from . import train
+    if "config" in sys.argv[1]:
+        generate_config_file(config_out_path=args.config_out_path,
+                             architecture="unet",
+                             patch_size=args.patch_size,
+                             movie_dir=args.movie_dir,
+                             even_dir=args.even_dir,
+                             odd_dir=args.odd_dir,
+                             batch_size=args.batch_size,
+                             learning_rate=args.learning_rate,
+                             nb_epoch=args.nb_epoch,
+                             saved_weights_name=args.saved_weights_name)
+    else:
+        if isinstance(args.gpu, list):
+            if len(args.gpu) == 1:
+                if args.gpu[0] != "-1":
+                    str_gpus = args.gpu[0].strip().split(" ")
+                    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str_gpus)
+        elif args.gpu != -1:
+            str_gpus = str(args.gpu)
+            os.environ["CUDA_VISIBLE_DEVICES"] = str_gpus
 
-        train.train(
-            even_path=config["train"]["even_dir"],
-            odd_path=config["train"]["odd_dir"],
-            model_out_path=config["train"]["saved_weights_name"],
-            movie_path=config["train"]["movie_dir"],
-            learning_rate=config["train"]["learning_rate"],
-            epochs=config["train"]["nb_epoch"],
-            model=config["model"]["architecture"],
-            patch_size=(config["model"]["patch_size"], config["model"]["patch_size"]),
-            batch_size=config["train"]["batch_size"],
-        )
+        if "train" in sys.argv[1]:
+            config = read_config(args.config_path)
 
-    if "predict" in sys.argv[1]:
+            from . import train
 
-        input_path = args.input_path
-        output_path = args.output_path
-        model_path = args.model_path
-        from . import predict
+            train.train(
+                even_path=config["train"]["even_dir"],
+                odd_path=config["train"]["odd_dir"],
+                model_out_path=config["train"]["saved_weights_name"],
+                movie_path=config["train"]["movie_dir"],
+                learning_rate=config["train"]["learning_rate"],
+                epochs=config["train"]["nb_epoch"],
+                model=config["model"]["architecture"],
+                patch_size=(config["model"]["patch_size"], config["model"]["patch_size"]),
+                batch_size=config["train"]["batch_size"],
+            )
 
-        batch_size = DEFAULT_BATCH_SIZE
-        padding = DEFAULT_PADDING
+        elif "predict" in sys.argv[1]:
 
-        with h5py.File(model_path, mode="r") as f:
-            try:
-                import numpy as np
+            input_path = args.input_path
+            output_path = args.output_path
+            model_path = args.model_path
+            from . import predict
 
-                model = str(np.array((f["model_name"])))
-                patch_size = tuple(f["patch_size"])
-            except KeyError:
-                print("Error on loading model", model_path)
-                sys.exit(0)
+            batch_size = DEFAULT_BATCH_SIZE
+            padding = DEFAULT_PADDING
 
-        if args.overlap is not None:
-            padding = int(args.overlap)
+            with h5py.File(model_path, mode="r") as f:
+                try:
+                    import numpy as np
 
-        if args.batch_size is not None:
-            batch_size = int(args.batch_size)
+                    model = str(np.array((f["model_name"])))
+                    patch_size = tuple(f["patch_size"])
+                except KeyError:
+                    print("Error on loading model", model_path)
+                    sys.exit(0)
 
-        predict.predict(
-            input_path=input_path,
-            output_path=output_path,
-            model_path=model_path,
-            model=model,
-            patch_size=patch_size,
-            padding=padding,
-            batch_size=batch_size,
-        )
+            if args.overlap is not None:
+                padding = int(args.overlap)
 
+            if args.batch_size is not None:
+                batch_size = int(args.batch_size)
+
+            predict.predict(
+                input_path=input_path,
+                output_path=output_path,
+                model_path=model_path,
+                model=model,
+                patch_size=patch_size,
+                padding=padding,
+                batch_size=batch_size,
+            )
+
+def generate_config_file(config_out_path,
+                         architecture,
+                         patch_size,
+                         movie_dir,
+                         even_dir,
+                         odd_dir,
+                         batch_size,
+                         learning_rate,
+                         nb_epoch,
+                         saved_weights_name):
+    model_dict = {'architecture': architecture,
+                  'patch_size': patch_size,
+                  }
+
+    train_dict = {'movie_dir': movie_dir,
+                  'even_dir': even_dir,
+                  'odd_dir': odd_dir,
+                  'batch_size': batch_size,
+                  'learning_rate': learning_rate,
+                  'nb_epoch': nb_epoch,
+                  "saved_weights_name": saved_weights_name,
+                  }
+
+    from json import dump
+    dict = {"model": model_dict, "train": train_dict}
+    with open(config_out_path, 'w') as f:
+        dump(dict, f, ensure_ascii=False, indent=4)
+    print("Wrote config to", config_out_path)
 
 def read_config(config_path):
     with open(config_path) as config_buffer:
