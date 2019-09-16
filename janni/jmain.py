@@ -35,6 +35,10 @@ from gooey import Gooey, GooeyParser
 import janni.__init__ as ini
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+try:
+    os.environ["CUDA_VISIBLE_DEVICES"]
+except KeyError:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 DEFAULT_BATCH_SIZE = 4

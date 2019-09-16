@@ -166,7 +166,7 @@ def predict_list(
                     )
                 # Write result to disk
 
-                if output_resize_to != None:
+                if output_resize_to is not None:
                     from PIL import Image
                     denoised = np.array(Image.fromarray(denoised).resize(
                         output_resize_to, resample=Image.BILINEAR))
