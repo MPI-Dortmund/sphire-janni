@@ -67,15 +67,8 @@ def create_config_parser(parser):
     )
 
     config_required_group.add_argument(
-        "--patch_size",
-        default=1024,
-        type=int,
-        help="The image will be denoised in patches. This field defines the patch size..",
-    )
-
-    config_required_group.add_argument(
         "--movie_dir",
-        help="Path to the directory with the movie files. If an average exists already in even_dir or odd_dir it will be skipped.",
+        help="Path to the directory with the movie files. The movie files can be unaligned. You should use at least 30 movies. If an average with the same filename already exists in even_dir or odd_dir it will be skipped.",
         widget="DirChooser",
     )
 
@@ -92,27 +85,6 @@ def create_config_parser(parser):
     )
 
     config_required_group.add_argument(
-        "--batch_size",
-        type=int,
-        default=4,
-        help="How many patches are in one mini-batch. If you have memory problems (e.g with cards < 8GB memory), you can try to reduce this value.",
-    )
-
-    config_required_group.add_argument(
-        "--learning_rate",
-        type=float,
-        default=10**-3,
-        help="Learning rate, should not be changed.",
-    )
-
-    config_required_group.add_argument(
-        "--nb_epoch",
-        type=int,
-        default=100,
-        help="Number of epochs to train. Default is 100. More epochs seems to only slightly improve the results.",
-    )
-
-    config_required_group.add_argument(
         "--saved_weights_name",
         default="janni_model.h5",
         help="Path for saving final weights.",
@@ -126,6 +98,39 @@ def create_config_parser(parser):
         },
     )
 
+
+    config_optional_group = parser.add_argument_group(
+        "Optional arguments",
+        "The arguments are optional to create a config file for JANNI",
+    )
+
+    config_optional_group.add_argument(
+        "--patch_size",
+        default=1024,
+        type=int,
+        help="The image will be denoised in patches. This field defines the patch size..",
+    )
+
+    config_optional_group.add_argument(
+        "--batch_size",
+        type=int,
+        default=4,
+        help="How many patches are in one mini-batch. If you have memory problems (e.g with cards < 8GB memory), you can try to reduce this value.",
+    )
+
+    config_optional_group.add_argument(
+        "--learning_rate",
+        type=float,
+        default=10**-3,
+        help="Learning rate, should not be changed.",
+    )
+
+    config_optional_group.add_argument(
+        "--nb_epoch",
+        type=int,
+        default=100,
+        help="Number of epochs to train. Default is 100. More epochs seems to only slightly improve the results.",
+    )
 
 
 def create_train_parser(parser):
@@ -157,17 +162,18 @@ def create_predict_parser(parser):
 
     required_group.add_argument(
         "input_path",
-        help="Directory / file path with images to denoise\n",
+        help="Directory / file path with images/movies to denoise. In our experience movie aligned averages are working best. \n",
         widget="DirChooser",
     )
+
     required_group.add_argument(
         "output_path",
-        help="Directory / file path to write denoised images\n",
+        help="Directory / file path to write denoised images.\n",
         widget="DirChooser",
     )
     required_group.add_argument(
         "model_path",
-        help="File path to trained model",
+        help="File path to trained model.",
         widget="FileChooser",
         gooey_options={
             "wildcard": "*.h5"
@@ -180,7 +186,7 @@ def create_predict_parser(parser):
     optional_group.add_argument(
         "-ol",
         "--overlap",
-        help="The patches have to overlap to remove artifacts. This is the amount of overlap in pixel.\n",
+        help="The patches have to overlap to remove artifacts. This is the amount of overlap in pixel. If you observe a grid like pattern in your images, increase this value.",
         default=DEFAULT_PADDING,
     )
     optional_group.add_argument(
@@ -230,6 +236,7 @@ def _main_():
         progress_regex=r"^.* \( Progress:\s+(-?\d+) % \)$",
         disable_progress_bar_animation=True,
         tabbed_groups=True,
+        default_size=(1024, 730),
         **kwargs
     )()
 
