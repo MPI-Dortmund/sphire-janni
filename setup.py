@@ -40,7 +40,9 @@ setup(
         "Pillow >= 6.0.0",
         "Cython",
         "imagecodecs-lite==2019.2.22",
-        "tifffile"
+        "tifffile",
+        "GooeyDev >= 1.0.3.2",
+        "wxPython == 4.0.4",
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',
     description='noise 2 noise for cryo em data',
