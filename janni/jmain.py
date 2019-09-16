@@ -175,7 +175,7 @@ def create_predict_parser(parser):
     )
 
     optional_group = parser.add_argument_group(
-        "Optional arguments", "These options are mandatory to run JANNI"
+        "Optional arguments", "These options are optional to run JANNI"
     )
     optional_group.add_argument(
         "-ol",
