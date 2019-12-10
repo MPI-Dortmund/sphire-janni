@@ -108,7 +108,8 @@ def predict_list(
     patch_size=(1024, 1024),
     padding=15,
     batch_size=4,
-    output_resize_to=None
+    output_resize_to=None,
+    squarify=False,
 ):
     """
     Denoises images / movies
@@ -167,6 +168,8 @@ def predict_list(
                 # Write result to disk
 
                 if output_resize_to is not None:
+                    if squarify:
+                        denoised = squarify(denoised)
                     from PIL import Image
                     denoised = np.array(Image.fromarray(denoised).resize(
                         output_resize_to, resample=Image.BILINEAR))
@@ -183,6 +186,17 @@ def predict_list(
 
     return denoise_image_paths
 
+def squarify(image, size=None):
+    np.random.seed()
+    if size is not None:
+        target_size=size
+    else:
+        target_size = np.max(image.shape)
+    mean = np.mean(image)
+    rectified_image = np.ones(shape=(target_size, target_size)) * mean
+    rectified_image[(rectified_image.shape[0]-image.shape[0]):rectified_image.shape[0],0:image.shape[1]] = image
+
+    return rectified_image
 
 def predict_np(model, image, patch_size=(1024, 1024), padding=15, batch_size=4):
     """
