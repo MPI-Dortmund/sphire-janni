@@ -1,0 +1,1 @@
+ - fix tifffile to 2019.7.26. otherwise the installation does not work.
