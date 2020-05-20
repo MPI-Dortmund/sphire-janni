@@ -33,7 +33,7 @@ setup(
         'cpu': ['tensorflow == 1.10.1']
     },
     install_requires=[
-        "mrcfile >= 1.0.0",
+        "mrcfile >= 1.0.0，<= 1.1.2",
         "Keras == 2.2.5",
         "numpy == 1.14.5",
         "h5py >= 2.5.0",
