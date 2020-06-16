@@ -119,7 +119,9 @@ def predict_list(
     :param patch_size: Patch size in Pixel. Image will be denoised in patches and then stitched together.
     :param padding: Padding to remove edge effects.
     :param batch_size: Number of patches denoised in parallel.
-    :param output_resize_to: The denoised image will be downsized to this dimension.
+    :param output_resize_to: The denoised image will be downsized to this dimension. In case of a
+    list it should be [height,width]. If a single number if passed the short image side is scaled to
+    this size and the long side according the aspect ratio.
     :return: List of paths to denoised images
     """
 
@@ -170,9 +172,21 @@ def predict_list(
                 if output_resize_to is not None:
                     if squarify:
                         denoised = squarify(denoised)
+                    resize_to = output_resize_to
+                    if not isinstance(output_resize_to, (list, tuple)):
+                        # Rescale shorter side to output_resize_to
+                        ar = denoised.shape[0] / denoised.shape[1]
+                        if ar < 1:
+                            height = output_resize_to
+                            width = int(output_resize_to / ar)
+                        else:
+                            height = int(output_resize_to * ar)
+                            width = output_resize_to
+                        resize_to = [height, width]
+
                     from PIL import Image
                     denoised = np.array(Image.fromarray(denoised).resize(
-                        output_resize_to, resample=Image.BILINEAR))
+                        (resize_to[1], resize_to[0]), resample=Image.BILINEAR))
 
                 print("Write denoised image in", opath)
                 if opath.endswith((".mrc", ".mrcs")):
