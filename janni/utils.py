@@ -182,8 +182,8 @@ def read_image(path):
             img = tifffile.imread(path)
         return img
     elif path.endswith(("mrc", "mrcs")):
-        with mrcfile.mmap(path, permissive=True) as mrc:
-            return mrc.data
+        mrc_image_data = mrcfile.open(path, permissive=True, mode='r')
+        return mrc_image_data.data
     else:
         print("Image format not supported. File: ", path)
         return None

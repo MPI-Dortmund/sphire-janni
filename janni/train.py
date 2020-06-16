@@ -28,12 +28,12 @@ SOFTWARE.
 
 from . import models
 from . import patch_pair_generator as gen
-from keras.optimizers import Adam
 import os
 from . import utils
 import mrcfile
 import tifffile
 import numpy as np
+import tensorflow.keras as keras
 
 def train(
     even_path,
@@ -247,15 +247,15 @@ def train_pairs(
 
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
-    opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
+    opt = keras.optimizers.Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
     model.compile(optimizer=opt, loss=loss)
 
-    history = model.fit_generator(
-        generator=train_gen,
+    history = model.fit(
+        x=train_gen,
         validation_data=valid_gen,
         epochs=epochs,
         callbacks=callbacks,
-        workers=4,
-        use_multiprocessing=True
+        workers=1,
+        use_multiprocessing=False
     )
     return model

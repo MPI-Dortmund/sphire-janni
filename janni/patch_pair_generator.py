@@ -26,14 +26,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from keras.utils import Sequence
+import tensorflow.keras.utils as kutils
 from random import shuffle
 import numpy as np
-import mrcfile
 from . import utils
 
 
-class patch_pair_batch_generator(Sequence):
+class patch_pair_batch_generator(kutils.Sequence):
     def __init__(
         self, pair_a_images, pair_b_images, patch_size, batch_size=4, augment=False
     ):
