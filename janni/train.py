@@ -45,6 +45,7 @@ def train(
     model="unet",
     patch_size=(1024, 1024),
     batch_size=4,
+    loss="mae"
 ):
     '''
     Does the complete noise2noise training and writes the model file to disk.
@@ -71,6 +72,7 @@ def train(
         model=model,
         patch_size=patch_size,
         batch_size=batch_size,
+        loss=loss,
         )
     trained_model.save_weights(model_out_path)
     import h5py
@@ -90,7 +92,8 @@ def train_movie_dir(
     epochs=50,
     model="unet",
     patch_size=(1024, 1024),
-    batch_size=4,
+    batch_size=3,
+    loss="mae"
 ):
     '''
     Does the complete noise2noise training.
@@ -103,6 +106,7 @@ def train_movie_dir(
     :param model: Model indentifier. Right now only "unet" is supported.
     :param patch_size: Patch size in pixel. The network is trained on random patches of the images.
     :param batch_size: n
+    :param loss: mae or mse are possible
     :return: trained model
     '''
 
@@ -120,6 +124,7 @@ def train_movie_dir(
         batch_size=batch_size,
         epochs=epochs,
         valid_split=0.1,
+        loss=loss
     )
     return trained_model
 
@@ -209,7 +214,7 @@ def train_pairs(
     callbacks=[],
     batch_size=4,
     valid_split=0.1,
-    loss="mse"
+    loss="mae"
 ):
     """
     Training noise2noise model.
@@ -224,11 +229,11 @@ def train_pairs(
     :param valid_split: training-validion split.
     :return: Trained keras model
     """
-    train_valid_split = int(valid_split * len(pair_files_a))
-    train_pair_a_files = pair_files_a[train_valid_split:]
-    valid_pair_a_files = pair_files_a[:train_valid_split]
-    train_pair_b_files = pari_files_b[train_valid_split:]
-    valid_pair_b_files = pari_files_b[:train_valid_split]
+    #train_valid_split = int(valid_split * len(pair_files_a))
+    train_pair_a_files = pair_files_a
+    #valid_pair_a_files = pair_files_a[:train_valid_split]
+    train_pair_b_files = pari_files_b
+    #valid_pair_b_files = pari_files_b[:train_valid_split]
 
     train_gen = gen.patch_pair_batch_generator(
         pair_a_images=train_pair_a_files,
@@ -238,12 +243,14 @@ def train_pairs(
         augment=True,
     )
 
+    '''
     valid_gen = gen.patch_pair_batch_generator(
         pair_a_images=valid_pair_a_files,
         pair_b_images=valid_pair_b_files,
         patch_size=patch_size,
         batch_size=batch_size,
     )
+    '''
 
     if model == "unet":
         model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
@@ -252,7 +259,6 @@ def train_pairs(
 
     history = model.fit(
         x=train_gen,
-        validation_data=valid_gen,
         epochs=epochs,
         callbacks=callbacks,
         workers=1,
