@@ -61,7 +61,7 @@ class patch_pair_batch_generator(Sequence):
             pair_a_img_path = self.pair_a_images[img_index]
             pair_b_img_path = self.pair_b_images[img_index]
 
-            data = utils.read_image(pair_a_img_path)
+            data = utils.read_image(pair_a_img_path, use_mmap=True)
 
             start0 = np.random.randint(0, data.shape[0] - self.patch_size[0] + 1)
             end0 = start0 + self.patch_size[0]
@@ -70,7 +70,7 @@ class patch_pair_batch_generator(Sequence):
             end1 = start1 + self.patch_size[1]
             pair_a = data[start0:end0, start1:end1].astype(np.float32)
 
-            data = utils.read_image(pair_b_img_path)
+            data = utils.read_image(pair_b_img_path, use_mmap=True)
 
             pair_b = data[start0:end0, start1:end1].astype(np.float32)
 

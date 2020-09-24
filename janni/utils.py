@@ -146,6 +146,28 @@ def patches_to_image(patches, pads, image_shape=(4096, 4096), padding=15):
     image = image[pads[0][0] : -pads[0][1], pads[1][0] : -pads[1][1]]
     return image
 
+def rescale_binning(image, bin_factor):
+    from skimage.transform import rescale
+    image = rescale(image,1.0/bin_factor)
+    return image
+
+def fourier_binning(image, bin_factor):
+    image = np.squeeze(image)
+
+    halfdim = image.shape/bin_factor
+    imft = np.fft.fft2(image)
+
+    # Shift origin to center (so that I can cut out the middle)
+    shft = np.roll(np.roll(imft, halfdim / 2, axis=0), halfdim / 2, axis=1)
+
+    # Cut out the middle
+    wift = shft[:halfdim + 1, :halfdim + 1]
+
+    # Shift origin back to (0,0)
+    wishft = np.roll(np.roll(wift, -halfdim / 2, axis=0), -halfdim / 2, axis=1)
+
+    # Compute invertse FT
+    real_array = np.fft.ifft2(wishft)
 
 def create_image_pair(movie_path):
     '''
@@ -153,10 +175,19 @@ def create_image_pair(movie_path):
     :param movie_path: Path to movie
     :return: even and odd average
     '''
+    import os
 
+    bin_file = os.path.join(os.path.dirname(movie_path), "bin.txt")
     data = utils.read_image(movie_path)
+
     even = np.sum(data[::2], axis=0).astype(np.float32)
     odd = np.sum(data[1::2], axis=0).astype(np.float32)
+
+    if os.path.exists(bin_file):
+        bin_factor = int(np.genfromtxt(bin_file))
+        print("Do",bin_factor,"x binning", movie_path)
+        even = rescale_binning(even,bin_factor)
+        odd = rescale_binning(odd,bin_factor)
 
     return even, odd
 
@@ -174,7 +205,7 @@ def normalize(img):
     return img, mean, sd
 
 
-def read_image(path):
+def read_image(path,use_mmap=False):
     if path.endswith((".tif", ".tiff")):
         try:
             img = tifffile.memmap(path,mode="r")
@@ -182,8 +213,11 @@ def read_image(path):
             img = tifffile.imread(path)
         return img
     elif path.endswith(("mrc", "mrcs")):
-        with mrcfile.mmap(path, permissive=True) as mrc:
-            return mrc.data
+        if use_mmap == False:
+            mrc_image_data = mrcfile.open(path, permissive=True, mode='r')
+        else:
+            mrc_image_data = mrcfile.mmap(path, permissive=True, mode='r')
+        return mrc_image_data.data
     else:
         print("Image format not supported. File: ", path)
         return None
