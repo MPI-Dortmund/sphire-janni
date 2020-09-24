@@ -274,6 +274,13 @@ def main(args=None):
             config = read_config(args.config_path)
 
             from . import train
+            loss = "mae"
+            if "loss" in config["train"]:
+                if "mae" == config["train"]["loss"] or "mse" == config["train"]["loss"]:\
+                    loss = config["train"]["loss"]
+                else:
+                    print("Unsupported loss chosen:",config["train"]["loss"])
+                    print("Use default loss MAE")
 
             train.train(
                 even_path=config["train"]["even_dir"],
@@ -285,6 +292,7 @@ def main(args=None):
                 model=config["model"]["architecture"],
                 patch_size=(config["model"]["patch_size"], config["model"]["patch_size"]),
                 batch_size=config["train"]["batch_size"],
+                loss=loss
             )
 
         elif "denoise" in sys.argv[1]:
