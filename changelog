@@ -1,1 +1,12 @@
+
+ Version 0.2:
+ - Added support for binning. In case you recorded your movies in super resolution
+ mode, but later want to apply JANNI to binned images, you need to bin your images
+ during training. This now happens when 'bin.txt' file is available in the directory that contains
+ the super resolution movies. The file 'bin.txt' simply contains the binning factor (like 2 for 2x binning).
+ - JANNI now allows to choose between two loss functions: mean squared error (mse) or mean absolute
+ error (mae). The latter is the new default.
+
+
+ ------------------------------------
  - fix tifffile to 2019.7.26. otherwise the installation does not work.
