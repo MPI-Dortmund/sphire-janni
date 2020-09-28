@@ -105,6 +105,12 @@ def create_config_parser(parser):
     )
 
     config_optional_group.add_argument(
+        "--loss",
+        default="mae",
+        help="Loss function that is used during training: Mean squared error (mse) or mean absolute error (mae).",
+        choices=["mae", "mse",],
+    )
+    config_optional_group.add_argument(
         "--patch_size",
         default=1024,
         type=int,
@@ -259,7 +265,8 @@ def main(args=None):
                              batch_size=args.batch_size,
                              learning_rate=args.learning_rate,
                              nb_epoch=args.nb_epoch,
-                             saved_weights_name=args.saved_weights_name)
+                             saved_weights_name=args.saved_weights_name,
+                             loss=args.loss,)
     else:
         if isinstance(args.gpu, list):
             if len(args.gpu) == 1:
@@ -350,7 +357,8 @@ def generate_config_file(config_out_path,
                          batch_size,
                          learning_rate,
                          nb_epoch,
-                         saved_weights_name):
+                         saved_weights_name,
+                         loss):
     model_dict = {'architecture': architecture,
                   'patch_size': patch_size,
                   }
@@ -362,6 +370,7 @@ def generate_config_file(config_out_path,
                   'learning_rate': learning_rate,
                   'nb_epoch': nb_epoch,
                   "saved_weights_name": saved_weights_name,
+                  "loss": loss,
                   }
 
     from json import dump
