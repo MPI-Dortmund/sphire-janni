@@ -43,6 +43,7 @@ setup(
         "tifffile==2019.7.2",
         "GooeyDev >= 1.0.3.2",
         "wxPython == 4.0.4",
+        "scikit-image == 0.15.0"
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',
     description='noise 2 noise for cryo em data',
