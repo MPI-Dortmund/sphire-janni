@@ -28,6 +28,7 @@ SOFTWARE.
 
 from . import models
 from . import patch_pair_generator as gen
+from . import utils
 from keras.optimizers import Adam
 import os
 from . import utils
@@ -45,7 +46,8 @@ def train(
     model="unet",
     patch_size=(1024, 1024),
     batch_size=4,
-    loss="mae"
+    loss="mae",
+    fbinning=utils.fourier_binning
 ):
     '''
     Does the complete noise2noise training and writes the model file to disk.
@@ -72,7 +74,8 @@ def train(
         model=model,
         patch_size=patch_size,
         batch_size=batch_size,
-        loss=loss
+        loss=loss,
+        fbinning=fbinning
         )
     trained_model.save_weights(model_out_path)
     import h5py
@@ -93,7 +96,8 @@ def train_movie_dir(
     model="unet",
     patch_size=(1024, 1024),
     batch_size=4,
-    loss="mae"
+    loss="mae",
+    fbinning=utils.fourier_binning
 ):
     '''
     Does the complete noise2noise training.
@@ -111,11 +115,9 @@ def train_movie_dir(
     '''
 
     # Read training even/odd micrographs
-    print("CREATE")
     even_files, odd_files = calc_even_odd(
-        movie_path, even_path, odd_path, recursive=True
+        movie_path, even_path, odd_path, recursive=True,fbinning=fbinning
     )
-    print("DONE")
     trained_model = train_pairs(
         even_files,
         odd_files,
@@ -131,7 +133,11 @@ def train_movie_dir(
 
 
 
-def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
+def calc_even_odd(movie_path,
+                  even_path,
+                  odd_path,
+                  recursive=True,
+                  fbinning=utils.fourier_binning):
     """
     Calculates averages based on the even/odd frames of the movies in movie_path and save the
     respective averages in even_path or odd_path.
@@ -182,7 +188,7 @@ def calc_even_odd(movie_path, even_path, odd_path, recursive=True):
     for tuble_index, movie_tuble in enumerate(movies_to_split):
         path, filename = movie_tuble
         print("Create even/odd average for:", path, "( Progress: ",int(100*tuble_index/len(movies_to_split)),"% )")
-        even, odd = utils.create_image_pair(path)
+        even, odd = utils.create_image_pair(path,fbinning)
         out_even_path = os.path.join(even_path, filename)
         out_odd_path = os.path.join(odd_path, filename)
         if path.endswith(("mrcs", "mrc")):

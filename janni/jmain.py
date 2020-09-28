@@ -281,6 +281,15 @@ def main(args=None):
                 else:
                     print("Unsupported loss chosen:",config["train"]["loss"])
                     print("Use default loss MAE")
+            from . import utils
+            fbinning = utils.fourier_binning
+            if "binning" in config["train"]:
+                if config["train"]["binning"] == "rescale":
+                    fbinning = utils.rescale_binning
+                elif config["train"]["binning"] == "fourier":
+                    fbinning = utils.fourier_binning
+                else:
+                    print("Invalid binning option. Use fourier binning as default.")
 
             train.train(
                 even_path=config["train"]["even_dir"],
@@ -292,7 +301,8 @@ def main(args=None):
                 model=config["model"]["architecture"],
                 patch_size=(config["model"]["patch_size"], config["model"]["patch_size"]),
                 batch_size=config["train"]["batch_size"],
-                loss=loss
+                loss=loss,
+                fbinning=fbinning,
             )
 
         elif "denoise" in sys.argv[1]:

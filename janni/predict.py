@@ -110,6 +110,7 @@ def predict_list(
     batch_size=4,
     output_resize_to=None,
     squarify=False,
+    fbinning=utils.fourier_binning
 ):
     """
     Denoises images / movies
@@ -141,7 +142,7 @@ def predict_list(
 
             if not os.path.exists(opath):
                 if utils.is_movie(path):
-                    even, odd = utils.create_image_pair(path)
+                    even, odd = utils.create_image_pair(path,fbinning)
                     denoised_even = predict_np(
                         model,
                         even,

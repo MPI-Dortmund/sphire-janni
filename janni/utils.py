@@ -154,22 +154,31 @@ def rescale_binning(image, bin_factor):
 def fourier_binning(image, bin_factor):
     image = np.squeeze(image)
 
-    halfdim = image.shape/bin_factor
+    newx = image.shape[1] // bin_factor
+    newy = image.shape[0] // bin_factor
+
+    assert image.shape[0] % bin_factor == 0 and image.shape[1] % bin_factor == 0, "ERROR! Dimensions are not integer-divisible by downsampling factor"
+    assert newx % bin_factor == 0 and newy % bin_factor == 0, "ERROR! Final dimensions need to be even (for now)"
+
     imft = np.fft.fft2(image)
 
     # Shift origin to center (so that I can cut out the middle)
-    shft = np.roll(np.roll(imft, halfdim / 2, axis=0), halfdim / 2, axis=1)
+    shft= np.roll(np.roll(imft, newx//2, axis=0), newy//2, axis=1)
 
     # Cut out the middle
-    wift = shft[:halfdim + 1, :halfdim + 1]
+    wift= shft[:newy,:newx]
 
     # Shift origin back to (0,0)
-    wishft = np.roll(np.roll(wift, -halfdim / 2, axis=0), -halfdim / 2, axis=1)
+    wishft= np.roll(np.roll(wift, -newx//2, axis=0), -newy//2, axis=1)
 
     # Compute invertse FT
-    real_array = np.fft.ifft2(wishft)
+    real_array = np.fft.ifft2(wishft).real
+    real_array = real_array-np.mean(real_array)+np.mean(image)
+    real_array = real_array.astype(np.float32)
 
-def create_image_pair(movie_path):
+    return real_array
+
+def create_image_pair(movie_path,fbinning=fourier_binning):
     '''
     Calculates averages based on even / odd frames in a movie
     :param movie_path: Path to movie
@@ -186,8 +195,8 @@ def create_image_pair(movie_path):
     if os.path.exists(bin_file):
         bin_factor = int(np.genfromtxt(bin_file))
         print("Do",bin_factor,"x binning", movie_path)
-        even = rescale_binning(even,bin_factor)
-        odd = rescale_binning(odd,bin_factor)
+        even = fbinning(even,bin_factor)
+        odd = fbinning(odd,bin_factor)
 
     return even, odd
 
