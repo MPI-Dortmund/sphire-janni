@@ -29,18 +29,18 @@ setup(
     author='Thorsten Wagner',
     setup_requires=["Cython"],
     extras_require={
-        'gpu': ['tensorflow-gpu == 1.10.1'],
-        'cpu': ['tensorflow == 1.10.1']
+        'gpu': ['tensorflow-gpu == 1.15.4'],
+        'cpu': ['tensorflow == 1.15.4']
     },
     install_requires=[
         "mrcfile >=1.0.0,<= 1.1.2",
         "Keras == 2.2.5",
-        "numpy == 1.14.5",
+        "numpy >= 1.16.0, < 1.19.0",
         "h5py >= 2.5.0",
         "Pillow >= 6.0.0",
         "Cython",
-        "imagecodecs-lite==2019.2.22",
-        "tifffile==2019.7.2",
+        "imagecodecs==2020.5.30",
+        "tifffile",
         "GooeyDev >= 1.0.3.2",
         "wxPython == 4.0.4",
         "scikit-image == 0.15.0"
