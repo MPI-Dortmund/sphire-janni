@@ -328,6 +328,7 @@ def main(args=None):
 
                     model = str(np.array((f["model_name"])))
                     patch_size = tuple(f["patch_size"])
+                    print("PATCH SIZE IS", patch_size)
                 except KeyError:
                     print("Error on loading model", model_path)
                     sys.exit(0)

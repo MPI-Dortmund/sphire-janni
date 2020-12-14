@@ -42,39 +42,46 @@ def image_to_patches(image, patch_size=(1024, 1024), padding=15):
     :param padding: Number of pixel the patches do overlap.
     :return: 3D Numpy array with shape (NUM_PATCHES,PATCH_WIDTH,PATCH_HIGHT) and applied pads
     '''
-    roi_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)
 
+    print("p_size", patch_size, padding, image.shape)
+    non_overlapping_region_size = (patch_size[0] - 2 * padding, patch_size[1] - 2 * padding)
+    print("roi_size", non_overlapping_region_size)
     pad_before0 = padding
-    diff0 = image.shape[0] - roi_size[0] * (image.shape[0] // roi_size[0])
+    diff0 = image.shape[0] - non_overlapping_region_size[0] * (image.shape[0] // non_overlapping_region_size[0])
+    print("d0", diff0)
     if diff0 == 0:
         pad_after0 = 0
     else:
         pad_after0 = patch_size[0] - diff0
 
     pad_before1 = padding
-    diff1 = image.shape[1] - roi_size[1] * (image.shape[1] // roi_size[1])
+    diff1 = image.shape[1] - non_overlapping_region_size[1] * (image.shape[1] // non_overlapping_region_size[1])
+    print("d1", diff1)
     if diff1 == 0:
         pad_after1 = 0
     else:
-        pad_after1 = patch_size[1] - (
-            image.shape[1] - roi_size[1] * (image.shape[1] // roi_size[1])
-        )
+        pad_after1 = patch_size[1] - diff1
+
     pads = [(pad_before0, pad_after0), (pad_before1, pad_after1)]
-
-    n0 = int(np.ceil(image.shape[0] / roi_size[0]))
-    n1 = int(np.ceil(image.shape[1] / roi_size[0]))
-
+    print("pads",pads)
+    n0 = int(np.ceil(image.shape[0] / non_overlapping_region_size[0]))
+    n1 = int(np.ceil(image.shape[1] / non_overlapping_region_size[1]))
+    print("Before:", int(np.ceil(image.shape[0] / non_overlapping_region_size[0])),int(np.ceil(image.shape[1] / non_overlapping_region_size[1])))
     image = np.pad(image, pads, mode="symmetric")
-
+    print("image_dim_after_pad", image.shape)
+    print("After:", image.shape[0] / non_overlapping_region_size[0],
+          image.shape[1] / non_overlapping_region_size[1])
+    print("After2:", image.shape[0] / patch_size[0],
+          image.shape[1] / patch_size[1])
     total = int(n0 * n1)
     patches = np.zeros(shape=(total, patch_size[0], patch_size[1]), dtype=np.float32)
 
     entry_index = 0
     for off0 in range(n0):
         for off1 in range(n1):
-            start0 = off0 * roi_size[0]
+            start0 = off0 * non_overlapping_region_size[0]
             end0 = start0 + patch_size[0]
-            start1 = off1 * roi_size[1]
+            start1 = off1 * non_overlapping_region_size[1]
             end1 = start1 + patch_size[1]
             patches[entry_index] = image[start0:end0, start1:end1]
             entry_index = entry_index + 1

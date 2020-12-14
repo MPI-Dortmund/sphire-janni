@@ -168,6 +168,7 @@ def predict_list(
                         img = utils.read_image(path)
                         img = img.squeeze()
                         denoised = np.zeros(shape=img.shape)
+
                         for z in range(img.shape[0]):
                             denoised[z] = predict_np(
                                 model,
