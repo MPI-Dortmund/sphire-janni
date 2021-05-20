@@ -45,7 +45,8 @@ def predict(
     batch_size=4,
     output_resize_to=None
 ):
-    if model == "unet":
+
+    if model == "unet" or model == b"unet":
         model = models.get_model_unet(input_size=patch_size)
         model.load_weights(model_path)
     else:

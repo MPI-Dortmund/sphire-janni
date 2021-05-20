@@ -326,7 +326,12 @@ def main(args=None):
                 try:
                     import numpy as np
 
-                    model = str(np.array((f["model_name"])))
+                    model = np.array((f["model_name"]))
+                    try:
+                        u = model.tolist()
+                        model = u.decode()
+                    except:
+                        pass
                     patch_size = tuple(f["patch_size"])
                 except KeyError:
                     print("Error on loading model", model_path)
