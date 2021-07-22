@@ -22,27 +22,26 @@ def find_version(*file_paths):
 setup(
     name='janni',
     version=find_version("janni", "__init__.py"),
-    python_requires='>3.4.0',
+    python_requires='>=3.5.0, <3.9',
     packages=['janni'],
     url='https://github.com/MPI-Dortmund/sphire-janni',
     license='MIT',
     author='Thorsten Wagner',
     setup_requires=["Cython"],
     extras_require={
-        'gpu': ['tensorflow-gpu == 1.14.0'],
-        'cpu': ['tensorflow == 1.14.0']
+        'gpu': ['tensorflow-gpu == 1.15.4'],
+        'cpu': ['tensorflow == 1.15.4']
     },
     install_requires=[
         "mrcfile >=1.0.0,<= 1.1.2",
-        "Keras == 2.2.5", # that doesnt seem to work. try tensorflow 1.14.0 in combination with keras 2.2.5
+        "Keras == 2.3.1", # that doesnt seem to work. try tensorflow 1.14.0 in combination with keras 2.2.5
         "numpy >= 1.16.0, < 1.19.0",
-        "h5py >= 2.5.0",
+        "h5py >= 2.5.0, < 3.0.0",
         "Pillow >= 6.0.0",
         "Cython",
-        "imagecodecs==2020.5.30",
-        "tifffile",
+        "tifffile==2020.9.3",
         "GooeyDev >= 1.0.3.2",
-        "wxPython == 4.0.4",
+        "wxPython == 4.1.0",
         "scikit-image == 0.15.0"
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',

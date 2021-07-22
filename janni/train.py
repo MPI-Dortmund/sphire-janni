@@ -263,12 +263,11 @@ def train_pairs(
         model = models.get_model_unet(input_size=patch_size, kernel_size=(3, 3))
     opt = Adam(lr=learning_rate, epsilon=10 ** -8, amsgrad=True)
     model.compile(optimizer=opt, loss=loss)
-
     history = model.fit_generator(
         generator=train_gen,
         epochs=epochs,
         callbacks=callbacks,
         workers=4,
-        use_multiprocessing=True
+        use_multiprocessing=False
     )
     return model

@@ -1,3 +1,1 @@
-conda create -n janni -c anaconda python=3.6 cudatoolkit=10.0.130 cudnn=7.6.5 libtiff wxPython=4.0.4
-LATEST: conda create -n janni -c anaconda python=3.6 tensorflow-gpu=1.14.0 libtiff wxPython=4.0.4
-export LD_LIBRARY_PATH=/home/twagner/Applications/miniconda3/envs/janni/lib/:${LD_LIBRARY_PATH}
+conda create -n janni -c anaconda python=3.7 cudnn=7.6.5 cudatoolkit=10.0.130 libtiff wxPython=4.1.0 -c conda-forge
