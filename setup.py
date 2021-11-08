@@ -33,16 +33,16 @@ setup(
         'cpu': ['tensorflow == 1.15.4']
     },
     install_requires=[
-        "mrcfile >=1.0.0,<= 1.1.2",
+        "mrcfile >=1.3.0",
         "Keras == 2.3.1", # that doesnt seem to work. try tensorflow 1.14.0 in combination with keras 2.2.5
         "numpy >= 1.16.0, < 1.19.0",
         "h5py >= 2.5.0, < 3.0.0",
         "Pillow >= 6.0.0",
         "Cython",
         "tifffile==2020.9.3",
-        "GooeyDev >= 1.0.3.2",
-        "wxPython == 4.1.0",
-        "scikit-image == 0.15.0"
+        "GooeyDev >= 1.0.8b3",
+        "wxPython >= 4.1.0",
+        "scikit-image >= 0.15.0"
     ],
     author_email='thorsten.wagner@mpi-dortmund.mpg.de',
     description='noise 2 noise for cryo em data',
